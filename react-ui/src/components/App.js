@@ -1,6 +1,5 @@
 import React from 'react';
 import '../App.css';
-import {ChatWindow} from "./ChatWindow";
 import {ApolloClient, ApolloProvider, InMemoryCache} from "@apollo/client";
 import SideBar from "./Sidebar";
 

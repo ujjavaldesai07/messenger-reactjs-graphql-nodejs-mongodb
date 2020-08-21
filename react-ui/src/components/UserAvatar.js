@@ -4,8 +4,8 @@ import { makeStyles } from '@material-ui/core/styles';
 
 const useStyles = makeStyles((theme) => ({
     small: {
-        width: theme.spacing(3),
-        height: theme.spacing(3),
+        width: theme.spacing(4),
+        height: theme.spacing(4),
     },
     large: {
         width: theme.spacing(7),
@@ -13,11 +13,11 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-export function UserAvatar() {
+export function UserAvatar(props) {
     const classes = useStyles();
     return (
         <>
-            <Avatar className={classes.large}>U</Avatar>
+            <Avatar className={props.size === "sm" ? classes.small: classes.large}>U</Avatar>
         </>
     )
 }

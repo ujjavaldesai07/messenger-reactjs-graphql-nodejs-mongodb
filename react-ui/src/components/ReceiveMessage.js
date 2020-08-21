@@ -8,7 +8,7 @@ export function ReceiveMessage() {
     return (
         <Grid container justify="flex-start" alignItems="center">
             <Grid item style={{marginRight: 10}}>
-                <UserAvatar/>
+                <UserAvatar size="lg"/>
             </Grid>
             <Grid item xs={6}>
                 <Message direction={RECEIVE_DIRECTION}/>

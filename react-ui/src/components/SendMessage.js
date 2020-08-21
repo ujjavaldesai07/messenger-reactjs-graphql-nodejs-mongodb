@@ -11,7 +11,7 @@ export function SendMessage() {
                 <Message direction={SEND_DIRECTION}/>
             </Grid>
             <Grid item style={{marginLeft: 10}}>
-                <UserAvatar/>
+                <UserAvatar size="lg"/>
             </Grid>
         </Grid>
     )
