@@ -15,12 +15,11 @@ import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
-import InboxIcon from '@material-ui/icons/MoveToInbox';
-import MailIcon from '@material-ui/icons/Mail';
 import {ChatWindow} from "./ChatWindow";
-import {CHAT_WINDOW_PADDING, DRAWER_WIDTH} from "../constants/constants";
+import {DRAWER_WIDTH} from "../constants/constants";
 import {Grid} from "@material-ui/core";
 import {UserAvatar} from "./UserAvatar";
+import log from "loglevel";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -95,6 +94,8 @@ export default function SideBar() {
     const handleDrawerClose = () => {
         setOpen(false);
     };
+
+    log.info(`[SideBar] Rendering SideBar Component....`)
 
     return (
         <div className={classes.root}>

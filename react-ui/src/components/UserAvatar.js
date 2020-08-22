@@ -1,6 +1,8 @@
 import React from 'react';
 import {Avatar} from "@material-ui/core";
 import { makeStyles } from '@material-ui/core/styles';
+import log from "loglevel";
+import {MessageBox} from "./MessageBox";
 
 const useStyles = makeStyles((theme) => ({
     small: {
@@ -15,9 +17,12 @@ const useStyles = makeStyles((theme) => ({
 
 export function UserAvatar(props) {
     const classes = useStyles();
+
+    log.info(`[UserAvatar] Rendering UserAvatar Component....`)
     return (
         <>
-            <Avatar className={props.size === "sm" ? classes.small: classes.large}>U</Avatar>
+            <Avatar className={props.size === "sm" ? classes.small: classes.large}>{
+                props.initials? props.initials.toUpperCase() : 'U'}</Avatar>
         </>
     )
 }

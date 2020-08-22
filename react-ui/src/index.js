@@ -3,6 +3,10 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './components/App';
 import * as serviceWorker from './serviceWorker';
+import log from "loglevel";
+
+// log.disableAll(true)
+log.setLevel("info")
 
 ReactDOM.render(
   <React.StrictMode>

@@ -1,18 +1,25 @@
 import React from 'react';
-import {Message} from "./Message";
+import {ChatBubbleMessage} from "./ChatBubbleMessage";
 import {Grid} from "@material-ui/core";
-import {RECEIVE_DIRECTION} from "../constants/constants";
 import {UserAvatar} from "./UserAvatar";
+import log from "loglevel";
 
-export function ReceiveMessage() {
+export function ReceiveMessage(props) {
+    log.info(`[ReceiveMessage] Rendering ReceiveMessage Component....`)
     return (
         <Grid container justify="flex-start" alignItems="center">
             <Grid item style={{marginRight: 10}}>
-                <UserAvatar size="lg"/>
+                <UserAvatar size="lg" initials={props.avatarInitials}/>
             </Grid>
             <Grid item xs={6}>
-                <Message direction={RECEIVE_DIRECTION}/>
+                <ChatBubbleMessage content={props.content}/>
             </Grid>
         </Grid>
     )
 }
+
+function receiveMessagePropsAreEqual(prevProps, nextProps) {
+    return prevProps.content === nextProps.content;
+}
+
+export const MemoizedReceiveMessage = React.memo(ReceiveMessage, receiveMessagePropsAreEqual);
