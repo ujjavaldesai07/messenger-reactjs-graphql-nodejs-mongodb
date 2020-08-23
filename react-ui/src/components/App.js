@@ -1,10 +1,11 @@
 import React from 'react';
 import '../App.css';
 import {ApolloClient, ApolloProvider, InMemoryCache} from "@apollo/client";
-import SideBar from "./Sidebar";
+import {SideBar} from "./Sidebar";
 import {SubscriptionClient} from "subscriptions-transport-ws";
 import {WebSocketLink} from "@apollo/client/link/ws";
 import log from "loglevel";
+import {ChatWindow} from "./ChatWindow";
 
 const GRAPHQL_ENDPOINT = "ws://localhost:4000/";
 
@@ -26,6 +27,7 @@ function App() {
     return (
         <ApolloProvider client={client}>
             <SideBar/>
+            <ChatWindow/>
         </ApolloProvider>
     );
 }

@@ -35,7 +35,7 @@ export function MessageBox(props) {
     log.info(`[MessageBox] Rendering MessageBox Component....`)
     return (
         <Grid container justify="center" alignItems="center" style={{
-            position: "fixed", bottom: 0, paddingRight: props.paddingRight,
+            position: "fixed", bottom: 0, paddingLeft: props.sidebarPadding,
             backgroundColor: "#dddbd1", height: 60
         }}>
             <Grid item xs={2} style={{height: 40}}>

@@ -15,11 +15,12 @@ import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
-import {ChatWindow} from "./ChatWindow";
 import {DRAWER_WIDTH} from "../constants/constants";
 import {Grid} from "@material-ui/core";
 import {UserAvatar} from "./UserAvatar";
 import log from "loglevel";
+import {useDispatch, useSelector} from "react-redux";
+import {SIDEBAR_DRAWER_CLOSED, SIDEBAR_DRAWER_OPEN} from "../actions/types";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -82,17 +83,22 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-export default function SideBar() {
+export const SideBar = () => {
     const classes = useStyles();
     const theme = useTheme();
-    const [open, setOpen] = React.useState(false);
+    const dispatch = useDispatch()
+    const sidebarDrawerStatus = useSelector(state => state.sidebarDrawerReducer)
 
     const handleDrawerOpen = () => {
-        setOpen(true);
+        dispatch({
+            type: SIDEBAR_DRAWER_OPEN
+        })
     };
 
     const handleDrawerClose = () => {
-        setOpen(false);
+        dispatch({
+            type: SIDEBAR_DRAWER_CLOSED
+        })
     };
 
     log.info(`[SideBar] Rendering SideBar Component....`)
@@ -103,7 +109,7 @@ export default function SideBar() {
             <AppBar
                 position="fixed"
                 className={clsx(classes.appBar, {
-                    [classes.appBarShift]: open,
+                    [classes.appBarShift]: sidebarDrawerStatus,
                 })}
             >
                 <Toolbar>
@@ -113,7 +119,7 @@ export default function SideBar() {
                         onClick={handleDrawerOpen}
                         edge="start"
                         className={clsx(classes.menuButton, {
-                            [classes.hide]: open,
+                            [classes.hide]: sidebarDrawerStatus,
                         })}
                     >
                         <MenuIcon/>
@@ -126,13 +132,13 @@ export default function SideBar() {
             <Drawer
                 variant="permanent"
                 className={clsx(classes.drawer, {
-                    [classes.drawerOpen]: open,
-                    [classes.drawerClose]: !open,
+                    [classes.drawerOpen]: sidebarDrawerStatus,
+                    [classes.drawerClose]: !sidebarDrawerStatus,
                 })}
                 classes={{
                     paper: clsx({
-                        [classes.drawerOpen]: open,
-                        [classes.drawerClose]: !open,
+                        [classes.drawerOpen]: sidebarDrawerStatus,
+                        [classes.drawerClose]: !sidebarDrawerStatus,
                     }),
                 }}
             >
@@ -161,10 +167,6 @@ export default function SideBar() {
                     ))}
                 </List>
             </Drawer>
-            <main className={classes.content}>
-                <div className={classes.toolbar}/>
-                <ChatWindow drawerOpen={open}/>
-            </main>
         </div>
     );
 }

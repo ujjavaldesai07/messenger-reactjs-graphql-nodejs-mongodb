@@ -2,7 +2,6 @@ import React from 'react';
 import {Avatar} from "@material-ui/core";
 import { makeStyles } from '@material-ui/core/styles';
 import log from "loglevel";
-import {MessageBox} from "./MessageBox";
 
 const useStyles = makeStyles((theme) => ({
     small: {
