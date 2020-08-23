@@ -3,7 +3,7 @@ import {Button, Grid, TextField} from "@material-ui/core";
 import log from "loglevel";
 import {makeStyles} from "@material-ui/core/styles";
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(() => ({
     input: {
         height: 42,
         backgroundColor: "#f7f7f7",
@@ -13,23 +13,23 @@ const useStyles = makeStyles((theme) => ({
 
 export function MessageBox(props) {
     const classes = useStyles();
-    const [activeMessageState, setActiveMessageState] = React.useState({name: 'Jack', content: ''});
+    const [activeMessageBoxState, setActiveMessageBoxState] = React.useState({name: 'Jack', content: ''});
 
     const handleContentChange = (event) => {
-        setActiveMessageState({...activeMessageState, content: event.target.value});
+        setActiveMessageBoxState({...activeMessageBoxState, content: event.target.value});
     };
 
     const handleUsernameChange = (event) => {
-        setActiveMessageState({...activeMessageState, name: event.target.value});
+        setActiveMessageBoxState({...activeMessageBoxState, name: event.target.value});
     };
 
     const handleSendButton = () => {
         // if blank then return
-        if (activeMessageState.content.length === 0) {
+        if (activeMessageBoxState.content.length === 0) {
             return
         }
-        props.onMessageSend(activeMessageState)
-        setActiveMessageState({...activeMessageState, content: ''});
+        props.onMessageSend(activeMessageBoxState)
+        setActiveMessageBoxState({...activeMessageBoxState, content: ''});
     }
 
     log.info(`[MessageBox] Rendering MessageBox Component....`)
@@ -41,7 +41,7 @@ export function MessageBox(props) {
             <Grid item xs={2} style={{height: 40}}>
                 <TextField
                     classes={{root: classes.root}}
-                    value={activeMessageState.name}
+                    value={activeMessageBoxState.name}
                     onChange={handleUsernameChange}
                     variant="outlined"
                     placeholder="Username"
@@ -54,7 +54,7 @@ export function MessageBox(props) {
             <Grid item xs={8} style={{height: 40}}>
                 <TextField
                     classes={{root: classes.root}}
-                    value={activeMessageState.content}
+                    value={activeMessageBoxState.content}
                     onChange={handleContentChange}
                     variant="outlined"
                     placeholder="Type a message"

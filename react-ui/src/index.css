@@ -12,6 +12,10 @@ code {
     monospace;
 }
 
+#root {
+  height: inherit;
+}
+
 /** {*/
 /*  outline: 1px solid red;*/
 /*}*/

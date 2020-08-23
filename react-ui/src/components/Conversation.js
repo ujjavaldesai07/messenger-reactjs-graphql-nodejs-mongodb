@@ -5,12 +5,15 @@ import {MemoizedSendMessage} from "./SendMessage";
 import {MemoizedReceiveMessage} from "./ReceiveMessage";
 import {useSubscription} from "@apollo/client";
 import {GET_MESSAGES} from "../constants/graphql";
+import {useSelector} from "react-redux";
 
-export function Conversation({activeUserState, scrollViewRef}) {
+export function Conversation({scrollViewRef}) {
     const {data} = useSubscription(GET_MESSAGES)
+    const activeUserState = useSelector(state => state.activeUserReducer)
 
     const renderConversation = () => {
         log.info(`activeUserState = ${JSON.stringify(activeUserState)}`)
+
 
         if (!data || (data && !data.messages) || (data && data.messages.length === 0)) {
             return null
@@ -18,12 +21,14 @@ export function Conversation({activeUserState, scrollViewRef}) {
 
         log.info(`data = ${JSON.stringify(data)}`)
 
-        setTimeout(() => {
+        if(scrollViewRef.current) {
+            setTimeout(() => {
                 scrollViewRef.current.scrollIntoView({
                     behavior: 'smooth',
                     block: 'end'
                 });
-        }, 5)
+            }, 5)
+        }
 
         return data.messages.map(({id, user, content}) => {
             if (activeUserState.name.localeCompare(user) === 0) {
@@ -42,7 +47,7 @@ export function Conversation({activeUserState, scrollViewRef}) {
         })
     }
 
-    log.info(`[UserAvatar] Rendering UserAvatar Component....`)
+    log.info(`[Conversation] Rendering Conversation Component....`)
     return (
         <>
             {renderConversation()}

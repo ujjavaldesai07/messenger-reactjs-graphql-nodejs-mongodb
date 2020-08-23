@@ -32,9 +32,6 @@ const resolvers = {
     Query: {
         messages: () => messages,
     },
-    Message: {
-
-    },
     Mutation: {
         postMessage: (parent, {user, content}) => {
             console.log(`[Mutation] postMessage() user = ${user}, content = ${content}`)

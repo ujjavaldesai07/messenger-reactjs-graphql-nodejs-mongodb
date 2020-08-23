@@ -4,7 +4,7 @@ import log from 'loglevel';
 
 export function ChatBubbleMessage(props) {
 
-    log.info(`[ChatBubbleMessage] Rendering ChatBubbleMessage Component....`)
+    log.info(`[ChatBubbleMessage] Rendering ChatBubbleMessage Component...`)
     return (
         <Grid className="chat-bubble-speech" container
               style={{
