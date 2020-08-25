@@ -2,11 +2,14 @@
   "name": "server",
   "version": "0.0.1",
   "private": true,
+  "type": "module",
   "scripts": {
     "start": "nodemon ./server.js"
   },
   "dependencies": {
+    "express": "^4.17.1",
     "graphql-yoga": "^1.18.3",
-    "lodash": "^4.17.20"
+    "lodash": "^4.17.20",
+    "mongoose": "latest"
   }
 }

@@ -1,31 +1,42 @@
 import React, {useRef} from 'react';
 import {useMutation} from '@apollo/client';
 import {Grid} from "@material-ui/core";
-import backgroundImage from '../images/background.jpg'
-import {CHAT_WINDOW_PADDING, DRAWER_WIDTH, SIDEBAR_PADDING, TOP_BOTTOM_POSITION} from "../constants/constants";
+import backgroundImage from '../../images/background.jpg'
+import {
+    CHAT_WINDOW_PADDING,
+    DRAWER_WIDTH,
+    getChannelId,
+    SIDEBAR_PADDING,
+    TOP_BOTTOM_POSITION
+} from "../../constants/constants";
 import log from "loglevel";
-import {MessageBox} from "./MessageBox";
-import {Conversation} from "./Conversation";
-import {POST_MESSAGES} from "../constants/graphql";
-import {useDispatch, useSelector} from "react-redux";
-import {ACTIVE_USER_STATE} from "../actions/types";
+import {MessageBox} from "../ui/MessageBox";
+import {Conversation} from "../ui/Conversation";
+import {POST_CONVERSATION} from "../../constants/graphql";
+import {useSelector} from "react-redux";
 
 export function ChatWindow() {
-    const [postMessage] = useMutation(POST_MESSAGES)
+    const activeUsername = useSelector(state => state.activeUsernameReducer)
+    const activeFriendInfo = useSelector(state => state.friendSelectionReducer)
+    const [postMessage] = useMutation(POST_CONVERSATION)
     const sidebarDrawerStatus = useSelector(state => state.sidebarDrawerReducer)
     const sidebarPadding = sidebarDrawerStatus ? DRAWER_WIDTH + CHAT_WINDOW_PADDING : SIDEBAR_PADDING
     const scrollViewRef = useRef(null);
-    const dispatch = useDispatch()
 
-    const onMessageSend = (state) => {
+    log.info(`[ChatWindow] friendId = ${activeFriendInfo.id}, friendName = ${activeFriendInfo.name}`)
+
+    const onMessageSend = (message) => {
+        const state = {
+            message: message,
+            user_name: activeUsername,
+            channel_id: getChannelId(activeUsername, activeFriendInfo),
+        }
+
         log.info(`onMessageSend = ${JSON.stringify(state)}`)
+
         postMessage({
             variables: state
-        }).then(() => dispatch({
-                type: ACTIVE_USER_STATE,
-                payload: state
-            })
-        ).catch(e => log.error(`[POST MESSAGE]: Unable to post message to graphql server e = ${e}`))
+        }).catch(e => log.error(`[POST MESSAGE]: Unable to post message to graphql server e = ${e}`))
     }
 
     log.info(`[ChatWindow] Rendering ChatWindow Component....`)
@@ -41,7 +52,8 @@ export function ChatWindow() {
                       position: "relative",
                   }}>
                 <Grid container style={{height: "fit-content"}}>
-                    <Conversation scrollViewRef={scrollViewRef}/>
+                    {activeFriendInfo.id && activeUsername ?
+                        <Conversation scrollViewRef={scrollViewRef} activeFriendInfo={activeFriendInfo}/> : null}
                 </Grid>
             </Grid>
             <MessageBox onMessageSend={onMessageSend} sidebarPadding={sidebarPadding - CHAT_WINDOW_PADDING}/>

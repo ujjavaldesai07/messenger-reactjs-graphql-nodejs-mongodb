@@ -9,7 +9,7 @@ export function ReceiveMessage(props) {
     return (
         <Grid container justify="flex-start" alignItems="center">
             <Grid item style={{marginRight: 10}}>
-                <UserAvatar size="lg" initials={props.avatarInitials}/>
+                <UserAvatar size="lg" name={props.name}/>
             </Grid>
             <Grid item xs={6}>
                 <ChatBubbleMessage content={props.content}/>

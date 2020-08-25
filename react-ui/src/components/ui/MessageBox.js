@@ -13,23 +13,19 @@ const useStyles = makeStyles(() => ({
 
 export function MessageBox(props) {
     const classes = useStyles();
-    const [activeMessageBoxState, setActiveMessageBoxState] = React.useState({name: 'Jack', content: ''});
+    const [activeMessage, setActiveMessageState] = React.useState('');
 
-    const handleContentChange = (event) => {
-        setActiveMessageBoxState({...activeMessageBoxState, content: event.target.value});
-    };
-
-    const handleUsernameChange = (event) => {
-        setActiveMessageBoxState({...activeMessageBoxState, name: event.target.value});
+    const handleMessageChange = (event) => {
+        setActiveMessageState(event.target.value);
     };
 
     const handleSendButton = () => {
         // if blank then return
-        if (activeMessageBoxState.content.length === 0) {
+        if (activeMessage.length === 0) {
             return
         }
-        props.onMessageSend(activeMessageBoxState)
-        setActiveMessageBoxState({...activeMessageBoxState, content: ''});
+        props.onMessageSend(activeMessage)
+        setActiveMessageState('');
     }
 
     log.info(`[MessageBox] Rendering MessageBox Component....`)
@@ -38,24 +34,11 @@ export function MessageBox(props) {
             position: "fixed", bottom: 0, paddingLeft: props.sidebarPadding,
             backgroundColor: "#dddbd1", height: 60
         }}>
-            <Grid item xs={2} style={{height: 40}}>
-                <TextField
-                    classes={{root: classes.root}}
-                    value={activeMessageBoxState.name}
-                    onChange={handleUsernameChange}
-                    variant="outlined"
-                    placeholder="Username"
-                    style={{width: "98%"}}
-                    InputProps={{
-                        className: classes.input,
-                    }}
-                />
-            </Grid>
             <Grid item xs={8} style={{height: 40}}>
                 <TextField
                     classes={{root: classes.root}}
-                    value={activeMessageBoxState.content}
-                    onChange={handleContentChange}
+                    value={activeMessage}
+                    onChange={handleMessageChange}
                     variant="outlined"
                     placeholder="Type a message"
                     style={{width: "98%"}}
@@ -63,7 +46,7 @@ export function MessageBox(props) {
                         className: classes.input,
                     }}
                     onKeyUp={event => {
-                        if(event.keyCode === 13) {
+                        if (event.keyCode === 13) {
                             handleSendButton();
                         }
                     }}

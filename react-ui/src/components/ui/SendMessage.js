@@ -12,7 +12,7 @@ export function SendMessage(props) {
                 <ChatBubbleMessage content={props.content}/>
             </Grid>
             <Grid item style={{marginLeft: 10}}>
-                <UserAvatar size="lg" initials={props.avatarInitials}/>
+                <UserAvatar size="lg" name={props.name}/>
             </Grid>
         </Grid>
     )

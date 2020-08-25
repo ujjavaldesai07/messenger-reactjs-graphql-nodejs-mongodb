@@ -1,10 +1,11 @@
 import {combineReducers} from "redux";
 import {reducer as formReducer} from "redux-form";
-import {sidebarDrawerReducer} from "./sidebarReducer";
-import {activeUserReducer} from "./activeUserReducer";
+import {sidebarDrawerReducer, friendSelectionReducer} from "./sidebarReducer";
+import {activeUsernameReducer} from "./activeUserReducer";
 
 export default combineReducers({
     form: formReducer,
     sidebarDrawerReducer,
-    activeUserReducer
+    friendSelectionReducer,
+    activeUsernameReducer,
 });

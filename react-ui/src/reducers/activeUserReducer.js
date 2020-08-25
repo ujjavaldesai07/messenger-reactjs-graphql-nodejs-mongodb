@@ -1,10 +1,9 @@
-import {ACTIVE_USER_STATE} from "../actions/types";
-import {INITIAL_ACTIVE_USER_STATE} from "../constants/constants";
+import {ACTIVE_USERNAME} from "../actions/types";
 
-export const activeUserReducer = (state = INITIAL_ACTIVE_USER_STATE, action) => {
+export const activeUsernameReducer = (state = null, action) => {
     switch (action.type) {
-        case ACTIVE_USER_STATE:
-            return {...state, name: action.payload.name, content: action.payload.content}
+        case ACTIVE_USERNAME:
+            return action.payload
         default:
             return state;
     }

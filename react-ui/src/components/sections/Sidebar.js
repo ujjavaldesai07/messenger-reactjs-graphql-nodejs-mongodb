@@ -15,12 +15,16 @@ import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
-import {DRAWER_WIDTH} from "../constants/constants";
+import {DRAWER_WIDTH} from "../../constants/constants";
 import {Grid} from "@material-ui/core";
-import {UserAvatar} from "./UserAvatar";
+import {UserAvatar} from "../ui/UserAvatar";
 import log from "loglevel";
 import {useDispatch, useSelector} from "react-redux";
-import {SIDEBAR_DRAWER_CLOSED, SIDEBAR_DRAWER_OPEN} from "../actions/types";
+import {
+    FRIEND_SELECTED,
+    SIDEBAR_DRAWER_CLOSED,
+    SIDEBAR_DRAWER_OPEN
+} from "../../actions/types";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -83,6 +87,11 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
+const friends = new Map([
+    ["1", 'ujjaval'],
+    ["2", 'mike'],
+])
+
 export const SideBar = () => {
     const classes = useStyles();
     const theme = useTheme();
@@ -100,6 +109,29 @@ export const SideBar = () => {
             type: SIDEBAR_DRAWER_CLOSED
         })
     };
+
+    const handleSidebarOptionBtn = (e) => {
+        dispatch({
+            type: FRIEND_SELECTED,
+            payload: {
+                id: e.currentTarget.id,
+                name: friends.get(e.currentTarget.id)
+            }
+        })
+    }
+
+    const renderFriends = () => {
+        let friendsComponentList = []
+        for (let [key, value] of  friends.entries()) {
+            friendsComponentList.push(
+                <ListItem button key={key} id={key} onClick={e => handleSidebarOptionBtn(e)}>
+                    <ListItemIcon><UserAvatar size="md" name={value}/></ListItemIcon>
+                    <ListItemText primary={value}/>
+                </ListItem>
+            )
+        }
+        return friendsComponentList
+    }
 
     log.info(`[SideBar] Rendering SideBar Component....`)
 
@@ -145,7 +177,7 @@ export const SideBar = () => {
                 <Grid container alignItems="center">
                     <Grid item xs={10}>
                         <Typography variant="h6" noWrap style={{paddingLeft: 20}}>
-                           My Friends
+                            My Friends
                         </Typography>
                     </Grid>
                     <Grid item xs={2}>
@@ -159,12 +191,7 @@ export const SideBar = () => {
 
                 <Divider/>
                 <List>
-                    {['Jack', 'Mary', 'Johny', 'Mike'].map((text, index) => (
-                        <ListItem button key={text}>
-                            <ListItemIcon><UserAvatar size="sm"/></ListItemIcon>
-                            <ListItemText primary={text}/>
-                        </ListItem>
-                    ))}
+                    {renderFriends()}
                 </List>
             </Drawer>
         </div>

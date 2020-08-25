@@ -1,35 +1,21 @@
-import React from 'react';
-import '../App.css';
-import {ApolloClient, ApolloProvider, InMemoryCache} from "@apollo/client";
-import {SideBar} from "./Sidebar";
-import {SubscriptionClient} from "subscriptions-transport-ws";
-import {WebSocketLink} from "@apollo/client/link/ws";
-import log from "loglevel";
-import {ChatWindow} from "./ChatWindow";
+import React from "react";
+import history from "../history";
+import {Router, Route, Switch} from 'react-router-dom';
+import log from "loglevel"
+import {LoginRoute} from "./routes/LoginRoute";
+import ChatRoute from "./routes/ChatRoute";
 
-const GRAPHQL_ENDPOINT = "ws://localhost:4000/";
+const App = () => {
+    log.info(`[App]: Rendering App Component`)
 
-const subscriptionClient = new SubscriptionClient(GRAPHQL_ENDPOINT, {
-    reconnect: true
-});
-
-const webSocketLink = new WebSocketLink(subscriptionClient);
-
-
-const client = new ApolloClient({
-    link: webSocketLink,
-    uri: 'http://localhost:4000/',
-    cache: new InMemoryCache()
-});
-
-function App() {
-    log.info(`[App] Rendering App Component....`)
     return (
-        <ApolloProvider client={client}>
-            <SideBar/>
-            <ChatWindow/>
-        </ApolloProvider>
-    );
+        <Router history={history}>
+            <Switch>
+                <Route path="/" exact component={LoginRoute}/>
+                <Route path="/chat" exact component={ChatRoute}/>
+            </Switch>
+        </Router>
+    )
 }
 
 export default App;
