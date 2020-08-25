@@ -4,10 +4,18 @@ import log from "loglevel";
 import {useDispatch} from "react-redux";
 import {ACTIVE_USERNAME} from "../../actions/types";
 import history from "../../history";
+import Cookies from "js-cookie";
+import {USER_AUTH_COOKIE} from "../../constants/constants";
+import {useAuthTokenFromCookie} from "../../hooks/userAuthTokenFromCookie";
+import {useMutation} from "@apollo/client";
+import {ADD_USER_PROFILE} from "../../constants/graphql";
 
 export function LoginRoute() {
     const [value, setValue] = useState('')
     const dispatch = useDispatch()
+    const [addUserProfile] = useMutation(ADD_USER_PROFILE)
+
+    useAuthTokenFromCookie(null)
 
     const handleUsernameChange = (e) => {
         setValue(e.target.value)
@@ -15,10 +23,17 @@ export function LoginRoute() {
 
     const handleLoginButton = () => {
         log.info(`[LoginRoute] handleLoginButton clicked`)
+        Cookies.set(USER_AUTH_COOKIE, value, {expires: 7})
+
+        addUserProfile({
+            variables: {user_name: value}
+        }).catch(e => log.error(`[ADD USER_PROFILE]: Unable to add user profile to graphql server e = ${e}`))
+
         dispatch({
             type: ACTIVE_USERNAME,
             payload: value
         })
+
         history.push("/chat")
     }
 

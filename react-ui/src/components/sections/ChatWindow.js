@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {useMutation} from '@apollo/client';
 import {Grid} from "@material-ui/core";
 import backgroundImage from '../../images/background.jpg'
@@ -14,22 +14,27 @@ import {MessageBox} from "../ui/MessageBox";
 import {Conversation} from "../ui/Conversation";
 import {POST_CONVERSATION} from "../../constants/graphql";
 import {useSelector} from "react-redux";
+import {useAuthTokenFromCookie} from "../../hooks/userAuthTokenFromCookie";
 
 export function ChatWindow() {
     const activeUsername = useSelector(state => state.activeUsernameReducer)
-    const activeFriendInfo = useSelector(state => state.friendSelectionReducer)
+    const activeFriendName = useSelector(state => state.friendSelectionReducer)
     const [postMessage] = useMutation(POST_CONVERSATION)
     const sidebarDrawerStatus = useSelector(state => state.sidebarDrawerReducer)
     const sidebarPadding = sidebarDrawerStatus ? DRAWER_WIDTH + CHAT_WINDOW_PADDING : SIDEBAR_PADDING
     const scrollViewRef = useRef(null);
 
-    log.info(`[ChatWindow] friendId = ${activeFriendInfo.id}, friendName = ${activeFriendInfo.name}`)
+    useAuthTokenFromCookie(activeUsername, activeFriendName)
+
+    if(!activeUsername) {
+        return null
+    }
 
     const onMessageSend = (message) => {
         const state = {
             message: message,
             user_name: activeUsername,
-            channel_id: getChannelId(activeUsername, activeFriendInfo),
+            channel_id: getChannelId(activeUsername, activeFriendName),
         }
 
         log.info(`onMessageSend = ${JSON.stringify(state)}`)
@@ -52,8 +57,8 @@ export function ChatWindow() {
                       position: "relative",
                   }}>
                 <Grid container style={{height: "fit-content"}}>
-                    {activeFriendInfo.id && activeUsername ?
-                        <Conversation scrollViewRef={scrollViewRef} activeFriendInfo={activeFriendInfo}/> : null}
+                    {activeFriendName && activeUsername ?
+                        <Conversation scrollViewRef={scrollViewRef} activeFriendName={activeFriendName}/> : null}
                 </Grid>
             </Grid>
             <MessageBox onMessageSend={onMessageSend} sidebarPadding={sidebarPadding - CHAT_WINDOW_PADDING}/>

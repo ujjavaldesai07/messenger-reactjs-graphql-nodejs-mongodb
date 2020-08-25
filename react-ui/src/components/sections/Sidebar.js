@@ -15,7 +15,7 @@ import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
-import {DRAWER_WIDTH} from "../../constants/constants";
+import {DRAWER_WIDTH, ACTIVE_FRIEND_COOKIE, USER_AUTH_COOKIE} from "../../constants/constants";
 import {Grid} from "@material-ui/core";
 import {UserAvatar} from "../ui/UserAvatar";
 import log from "loglevel";
@@ -25,6 +25,7 @@ import {
     SIDEBAR_DRAWER_CLOSED,
     SIDEBAR_DRAWER_OPEN
 } from "../../actions/types";
+import Cookies from "js-cookie";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -111,11 +112,14 @@ export const SideBar = () => {
     };
 
     const handleSidebarOptionBtn = (e) => {
+        const friendName = friends.get(e.currentTarget.id)
+
+        Cookies.set(ACTIVE_FRIEND_COOKIE, friendName, {expires: 7})
+
         dispatch({
             type: FRIEND_SELECTED,
             payload: {
-                id: e.currentTarget.id,
-                name: friends.get(e.currentTarget.id)
+                name: friendName
             }
         })
     }

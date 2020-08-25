@@ -8,13 +8,11 @@ import {useSubscription} from "@apollo/client";
 import {GET_CONVERSATION} from "../../constants/graphql";
 import {getChannelId} from "../../constants/constants";
 
-export function Conversation({scrollViewRef, activeFriendInfo}) {
+export function Conversation({scrollViewRef, activeFriendName}) {
     const activeUsername = useSelector(state => state.activeUsernameReducer)
     const {data, loading} = useSubscription(GET_CONVERSATION, {
-        variables: {channel_id: getChannelId(activeUsername, activeFriendInfo)}
+        variables: {channel_id: getChannelId(activeUsername, activeFriendName)}
     })
-
-    log.info(`[Conversation] friendId = ${activeFriendInfo.id}`)
 
     const renderConversation = () => {
         log.info(`activeUserState = ${activeUsername}, loading = ${loading}, data = ${JSON.stringify(data)}`)
@@ -24,7 +22,7 @@ export function Conversation({scrollViewRef, activeFriendInfo}) {
             return null
         }
 
-        if (scrollViewRef.current.hasOwnProperty("scrollIntoView")) {
+        if (scrollViewRef.current) {
             setTimeout(() => {
                 scrollViewRef.current.scrollIntoView({
                     behavior: 'smooth',
@@ -36,14 +34,14 @@ export function Conversation({scrollViewRef, activeFriendInfo}) {
         let count = 0
         return data.conversations.map(({user_name, message}) => {
             ++count
-            // log.info(`activeUsername = ${activeUsername}, user_name = ${user_name}, activeFriendInfo.name = ${activeFriendInfo.name}`)
+            // log.info(`activeUsername = ${activeUsername}, user_name = ${user_name}, activeFriendName = ${activeFriendName}`)
             if (activeUsername.localeCompare(user_name) === 0) {
                 return (
                     <Grid key={count} container style={{paddingBottom: 10}}>
                         <MemoizedSendMessage content={message} name={user_name}/>
                     </Grid>
                 )
-            } else if (activeFriendInfo.name.localeCompare(user_name) === 0) {
+            } else if (activeFriendName.localeCompare(user_name) === 0) {
                 return (
                     <Grid key={count} container style={{paddingBottom: 10}}>
                         <MemoizedReceiveMessage content={message} name={user_name}/>

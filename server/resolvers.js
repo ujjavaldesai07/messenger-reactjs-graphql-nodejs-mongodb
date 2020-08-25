@@ -5,6 +5,15 @@ const {PubSub} = pkg;
 export const pubsub = new PubSub()
 
 export const resolvers = {
+    Query: {
+        conversations: async (parent, {channel_id}) => {
+            const res = await Conversation.findOne({channel_id: channel_id})
+            if(res) {
+                return res.messages
+            }
+            return null
+        },
+    },
     Mutation: {
         postConversation: async (_, {channel_id, message, user_name}) => {
             const res = await Conversation.findOneAndUpdate(
