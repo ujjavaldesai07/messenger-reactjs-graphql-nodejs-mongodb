@@ -14,19 +14,17 @@ import {MessageBox} from "../ui/MessageBox";
 import {Conversation} from "../ui/Conversation";
 import {POST_CONVERSATION} from "../../constants/graphql";
 import {useSelector} from "react-redux";
-import {useAuthTokenFromCookie} from "../../hooks/userAuthTokenFromCookie";
+import history from "../../history";
 
 export function ChatWindow() {
     const activeUsername = useSelector(state => state.activeUsernameReducer)
-    const activeFriendName = useSelector(state => state.friendSelectionReducer)
+    const {channel_id, friend_user_name} = useSelector(state => state.friendSelectionReducer)
     const [postMessage] = useMutation(POST_CONVERSATION)
     const sidebarDrawerStatus = useSelector(state => state.sidebarDrawerReducer)
     const sidebarPadding = sidebarDrawerStatus ? DRAWER_WIDTH + CHAT_WINDOW_PADDING : SIDEBAR_PADDING
-    const scrollViewRef = useRef(null);
-
-    useAuthTokenFromCookie(activeUsername, activeFriendName)
 
     if(!activeUsername) {
+        history.push("/login")
         return null
     }
 
@@ -34,7 +32,7 @@ export function ChatWindow() {
         const state = {
             message: message,
             user_name: activeUsername,
-            channel_id: getChannelId(activeUsername, activeFriendName),
+            channel_id: channel_id,
         }
 
         log.info(`onMessageSend = ${JSON.stringify(state)}`)
@@ -47,7 +45,7 @@ export function ChatWindow() {
     log.info(`[ChatWindow] Rendering ChatWindow Component....`)
     return (
         <Grid container style={{position: "absolute", bottom: TOP_BOTTOM_POSITION, height: `92%`}}>
-            <Grid container ref={scrollViewRef}
+            <Grid container
                   style={{
                       background: `linear-gradient( rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.6) ), url(${backgroundImage})`,
                       top: TOP_BOTTOM_POSITION,
@@ -57,8 +55,9 @@ export function ChatWindow() {
                       position: "relative",
                   }}>
                 <Grid container style={{height: "fit-content"}}>
-                    {activeFriendName && activeUsername ?
-                        <Conversation scrollViewRef={scrollViewRef} activeFriendName={activeFriendName}/> : null}
+                    {friend_user_name && activeUsername ?
+                        <Conversation channel_id={channel_id}
+                                      activeFriendName={friend_user_name}/> : null}
                 </Grid>
             </Grid>
             <MessageBox onMessageSend={onMessageSend} sidebarPadding={sidebarPadding - CHAT_WINDOW_PADDING}/>

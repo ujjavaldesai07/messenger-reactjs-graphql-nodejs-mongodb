@@ -24,16 +24,16 @@ export function useAuthTokenFromCookie(activeUsername, activeFriendName) {
 
                 if (!activeFriendName) {
                     const storedActiveFriend = Cookies.get(ACTIVE_FRIEND_COOKIE)
-                    dispatch({
-                        type: FRIEND_SELECTED,
-                        payload: {
-                            name: storedActiveFriend
-                        }
-                    })
+                    if (storedActiveFriend) {
+                        dispatch({
+                            type: FRIEND_SELECTED,
+                            payload: JSON.parse(storedActiveFriend)
+                        })
+                    }
                 }
 
-                if (history.location.search.localeCompare("/chat") !== 0) {
-                    history.push("/chat")
+                if (history.location.search.localeCompare("/") !== 0) {
+                    history.push("/")
                 }
             }
         }

@@ -34,7 +34,7 @@ export function LoginRoute() {
             payload: value
         })
 
-        history.push("/chat")
+        history.push("/")
     }
 
     log.info(`[LoginRoute] Rendering LoginRoute Component....`)

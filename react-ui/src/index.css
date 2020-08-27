@@ -16,6 +16,10 @@ code {
   height: inherit;
 }
 
+.MuiListItem-root.Mui-selected, .MuiListItem-root.Mui-selected:hover {
+  background-color: #cacae8!important;
+}
+
 /** {*/
 /*  outline: 1px solid red;*/
 /*}*/

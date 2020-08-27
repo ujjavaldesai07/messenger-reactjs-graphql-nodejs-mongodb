@@ -8,7 +8,7 @@ import {typeDefs} from "./typeDefs.js"
 import {resolvers, pubsub} from "./resolvers.js"
 
 mongoose.connect("mongodb://localhost:27017/UserApp",
-     {useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false});
+     {useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false, autoIndex: false});
 
 const server = new GraphQLServer({typeDefs, resolvers, context: {pubsub}});
 

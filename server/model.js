@@ -1,17 +1,18 @@
 import mongoose from "mongoose";
 
 export const UserProfile = mongoose.model("UserProfile", {
-    user_name: String,
+    user_name: {type: String, index: true, required: true},
     friends: [
         {
             channel_id: Number,
-            friend_user_name: String
+            friend_user_name: String,
+            request_status: String
         }
     ],
 });
 
 export const Conversation = mongoose.model("Conversation", {
-    channel_id: Number,
+    channel_id: {type: Number, index: true, required: true},
     messages: [
         {
             message: String,

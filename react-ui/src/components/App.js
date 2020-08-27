@@ -11,8 +11,8 @@ const App = () => {
     return (
         <Router history={history}>
             <Switch>
-                <Route path="/" exact component={LoginRoute}/>
-                <Route path="/chat" exact component={ChatRoute}/>
+                <Route path="/" exact component={ChatRoute}/>
+                <Route path="/login" exact component={LoginRoute}/>
             </Switch>
         </Router>
     )

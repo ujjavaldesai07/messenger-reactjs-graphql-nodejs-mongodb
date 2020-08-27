@@ -6,12 +6,12 @@ import {MemoizedReceiveMessage} from "./ReceiveMessage";
 import {useSelector} from "react-redux";
 import {useSubscription} from "@apollo/client";
 import {GET_CONVERSATION} from "../../constants/graphql";
-import {getChannelId} from "../../constants/constants";
+import {animateScroll as scroll} from 'react-scroll'
 
-export function Conversation({scrollViewRef, activeFriendName}) {
+export function Conversation({activeFriendName, channel_id}) {
     const activeUsername = useSelector(state => state.activeUsernameReducer)
     const {data, loading} = useSubscription(GET_CONVERSATION, {
-        variables: {channel_id: getChannelId(activeUsername, activeFriendName)}
+        variables: {channel_id: channel_id, user_name: activeUsername}
     })
 
     const renderConversation = () => {
@@ -22,14 +22,7 @@ export function Conversation({scrollViewRef, activeFriendName}) {
             return null
         }
 
-        if (scrollViewRef.current) {
-            setTimeout(() => {
-                scrollViewRef.current.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'end'
-                });
-            }, 5)
-        }
+        scroll.scrollToBottom();
 
         let count = 0
         return data.conversations.map(({user_name, message}) => {
