@@ -16,35 +16,22 @@ export const notificationReducer = (state
             }
 
         case ACCEPTED_REQUEST_NOTIFICATION:
-            log.info(`Before state = ${JSON.stringify(state)}`)
-
-            log.info(`state.newRequests.length = ${state.newRequests.length}`)
             if (state.newRequests.length > 0) {
                 state.newRequests = state.newRequests.filter(
                     newRequest => newRequest.channel_id !== action.payload.acceptedRequests.channel_id)
             }
 
-            log.info(`state.pendingRequests.length = ${state.pendingRequests.length}`)
             if (state.pendingRequests.length > 0) {
                 state.pendingRequests = state.pendingRequests.filter(
                     pendingRequest => pendingRequest.channel_id !== action.payload.acceptedRequests.channel_id)
             }
 
-            log.info(`After state = ${JSON.stringify(state)}`)
             if (!state.acceptedRequests) {
                 return {
                     ...state, acceptedRequests: [action.payload.acceptedRequests],
                     requestNotification: action.payload.requestNotification
                 }
             }
-
-            log.info(`trying to update state = ${JSON.stringify(action.payload)}`)
-            log.info({
-                ...state, acceptedRequests: [...state.acceptedRequests, action.payload.acceptedRequests],
-                requestNotification: action.payload.requestNotification
-            })
-
-            log.info(`Updated is successful...`)
 
             return {
                 ...state, acceptedRequests: [...state.acceptedRequests, action.payload.acceptedRequests],

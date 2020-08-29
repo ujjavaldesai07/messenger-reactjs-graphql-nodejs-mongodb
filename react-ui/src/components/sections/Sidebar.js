@@ -15,7 +15,13 @@ import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
-import {ACTIVE_FRIEND_COOKIE, TOP_BOTTOM_POSITION, USER_AUTH_COOKIE} from "../../constants/constants";
+import {
+    ACTIVE_FRIEND_COOKIE,
+    USER_AUTH_COOKIE,
+    SELF_TEXT,
+    PENDING_TEXT,
+    ACCEPTED_TEXT, REQUESTED_TEXT
+} from "../../constants/constants";
 import {Badge, Button, Grid} from "@material-ui/core";
 import {UserAvatar} from "../ui/UserAvatar";
 import log from "loglevel";
@@ -35,23 +41,25 @@ import {
     GET_APP_NOTIFICATION,
     RESET_NOTIFICATION
 } from "../../constants/graphql";
-import {useStyles} from "../../styles/sidebarStyles"
+import {useSidebarStyles} from "../../styles/sidebarStyles"
 import IconTabs from "../ui/IconTabs";
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import history from "../../history";
 
 export const SideBar = () => {
-    const classes = useStyles();
+    const classes = useSidebarStyles();
     const theme = useTheme();
     const dispatch = useDispatch()
     const sidebarDrawerStatus = useSelector(state => state.sidebarDrawerReducer)
-    const [sidebarState, setSidebarState] = useState({
-        tabValue: 0,
-        findBtnState: false,
-    })
     const activeUsername = useSelector(state => state.activeUsernameReducer)
     const notificationReducer = useSelector(state => state.notificationReducer)
     const selectedFriend = useSelector(state => state.friendSelectionReducer)
+
+    const [sidebarState, setSidebarState] = useState({
+        tabValue: 0,
+        findBtnState: false,
+        excludeSearchSuggestions: new Map()
+    })
 
     // get data for the first time render
     const {data: queriedUserProfile, loading: queriedUserProfileLoading} = useQuery(GET_USER_PROFILE,
@@ -68,31 +76,56 @@ export const SideBar = () => {
 
     log.info(`[SideBar] subscribedData = ${JSON.stringify(subscribedData)}`)
     log.info(`[SideBar] queriedUserProfile = ${JSON.stringify(queriedUserProfile)}`)
+
     useEffect(() => {
         log.info(`[SideBar] subscribedData = ${JSON.stringify(subscribedData)}, notificationLoading = ${subscribedDataLoading}`)
         if (!subscribedDataLoading && subscribedData && subscribedData.app_notifications) {
             if (subscribedData.app_notifications.friend) {
+                let tempSearchSuggestions = new Map()
                 let {friend, request_notification} = subscribedData.app_notifications
                 switch (friend.request_status && friend.request_status.charAt(0)) {
                     case 'n':
+                        if (!sidebarState.excludeSearchSuggestions.has(friend.friend_user_name)) {
+                            tempSearchSuggestions.set(friend.friend_user_name, PENDING_TEXT)
+                        }
+
                         dispatch({
                             type: NEW_REQUEST_NOTIFICATION,
                             payload: {newRequests: friend, requestNotification: request_notification}
                         })
                         break
                     case 'a':
+                        if (!sidebarState.excludeSearchSuggestions.has(friend.friend_user_name)) {
+                            tempSearchSuggestions.set(friend.friend_user_name, ACCEPTED_TEXT)
+                        }
+
                         dispatch({
                             type: ACCEPTED_REQUEST_NOTIFICATION,
                             payload: {acceptedRequests: friend, requestNotification: request_notification}
                         })
                         break
                     case 'p':
+                        if (!sidebarState.excludeSearchSuggestions.has(friend.friend_user_name)) {
+                            tempSearchSuggestions.set(friend.friend_user_name, REQUESTED_TEXT)
+                        }
+
                         dispatch({
                             type: PENDING_REQUEST_NOTIFICATION,
                             payload: {pendingRequests: friend, requestNotification: request_notification}
                         })
                         break
+                    default:
+                        throw new Error("Its not possible to land here...")
                 }
+
+                if (tempSearchSuggestions.size > 0) {
+                    setSidebarState({
+                        ...sidebarState,
+                        excludeSearchSuggestions: new Map([...sidebarState.excludeSearchSuggestions]
+                            .concat([...tempSearchSuggestions]))
+                    })
+                }
+
             } else if (subscribedData.app_notifications.request_notification) {
                 dispatch({
                     type: REQUEST_NOTIFICATION,
@@ -101,7 +134,56 @@ export const SideBar = () => {
             }
         }
 
+        // eslint-disable-next-line
     }, [subscribedData])
+
+    useEffect(() => {
+        if (!queriedUserProfileLoading && queriedUserProfile && queriedUserProfile.userProfile) {
+            let tempSearchSuggestions = new Map()
+            if (!sidebarState.excludeSearchSuggestions.has(activeUsername)) {
+                tempSearchSuggestions.set(activeUsername, SELF_TEXT)
+            }
+            queriedUserProfile.userProfile.friends.forEach(({request_status, channel_id, friend_user_name}) => {
+                if (!sidebarState.excludeSearchSuggestions.has(friend_user_name)) {
+                    switch (request_status.charAt(0)) {
+                        case 'a':
+                            tempSearchSuggestions.set(friend_user_name, ACCEPTED_TEXT)
+                            break
+                        case 'n':
+                            tempSearchSuggestions.set(friend_user_name, PENDING_TEXT)
+                            break
+                        case 'p':
+                            tempSearchSuggestions.set(friend_user_name, REQUESTED_TEXT)
+                            break
+                        default:
+                            throw new Error(`[SideBar] request_status option ${request_status} not supported.`)
+                    }
+                }
+            })
+            if (tempSearchSuggestions.size > 0) {
+                setSidebarState({
+                    ...sidebarState,
+                    excludeSearchSuggestions: new Map([...sidebarState.excludeSearchSuggestions]
+                        .concat([...tempSearchSuggestions]))
+                })
+            }
+
+            dispatch({
+                type: REQUEST_NOTIFICATION,
+                payload: {requestNotification: queriedUserProfile.userProfile.request_notification}
+            })
+        }
+
+        // eslint-disable-next-line
+    }, [queriedUserProfile])
+
+    const friendRequestAcceptHandler = (user_name) => {
+        setSidebarState({
+            ...sidebarState,
+            excludeSearchSuggestions: new Map([...sidebarState.excludeSearchSuggestions]
+                .concat([...new Map([[user_name, REQUESTED_TEXT]])]))
+        })
+    }
 
     const handleDrawerOpen = () => {
         dispatch({
@@ -141,7 +223,7 @@ export const SideBar = () => {
                         <ListItemIcon><UserAvatar size="md" name={friend_user_name}/></ListItemIcon>
                     </Badge>
                     : <ListItemIcon><UserAvatar size="md" name={friend_user_name}/></ListItemIcon>}
-                <ListItemText primary={friend_user_name}/>
+                <ListItemText primary={friend_user_name} classes={{primary: classes.primaryText}}/>
             </ListItem>
         )
     }
@@ -150,7 +232,7 @@ export const SideBar = () => {
         return (
             <ListItem key={channel_id} id={channel_id} value={friend_user_name}>
                 <ListItemIcon><UserAvatar size="md" name={friend_user_name}/></ListItemIcon>
-                <ListItemText primary={friend_user_name}/>
+                <ListItemText primary={friend_user_name} classes={{primary: classes.primaryText}}/>
                 <Button variant="outlined" disabled color="primary" size="small"
                         style={{width: 50, height: 30, fontSize: "0.75rem"}}>
                     Pending
@@ -163,7 +245,7 @@ export const SideBar = () => {
         return (
             <ListItem key={channel_id} id={channel_id} value={friend_user_name}>
                 <ListItemIcon><UserAvatar size="md" name={friend_user_name}/></ListItemIcon>
-                <ListItemText primary={friend_user_name}/>
+                <ListItemText primary={friend_user_name} classes={{primary: classes.primaryText}}/>
                 <Button variant="contained" color="primary" size="small" value={friend_user_name}
                         onClick={acceptFriendRequestHandler}
                         style={{width: 50, height: 30, fontSize: "0.75rem"}}>
@@ -252,17 +334,16 @@ export const SideBar = () => {
             case 1:
                 if (notificationReducer.requestNotification
                     && notificationReducer.requestNotification.newRequests > 0) {
-                    log.info(`Resetting newRequests....`)
                     resetNotificationRequest("newRequests")
                 }
                 break
             case 2:
                 if (notificationReducer.requestNotification
                     && notificationReducer.requestNotification.pendingRequests > 0) {
-                    log.info(`Resetting pendingRequests....`)
                     resetNotificationRequest("pendingRequests")
                 }
                 break
+            default:
         }
         setSidebarState({...sidebarState, tabValue: value})
     }
@@ -389,16 +470,16 @@ export const SideBar = () => {
 
                     {sidebarDrawerStatus ?
                         <>
-                            <SearchBar changeFindBtnState={changeFindBtnState}/>
+                            <SearchBar changeFindBtnState={changeFindBtnState}
+                                       excludeSearchSuggestions={sidebarState.excludeSearchSuggestions}
+                                       friendRequestAcceptHandler={friendRequestAcceptHandler}/>
                             {
                                 sidebarState.findBtnState ? null :
                                     <Grid container justify="center">
                                         <IconTabs tabIconStateHandler={tabIconStateHandler}
                                                   sidebarTabValue={sidebarState.tabValue}
                                                   requestNotification={notificationReducer.requestNotification ?
-                                                      notificationReducer.requestNotification :
-                                                      queriedUserProfile && queriedUserProfile.userProfile ?
-                                                          queriedUserProfile.userProfile.request_notification : null}/>
+                                                      notificationReducer.requestNotification : null}/>
                                     </Grid>
                             }
                         </>

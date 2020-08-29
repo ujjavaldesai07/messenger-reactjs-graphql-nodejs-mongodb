@@ -37,5 +37,5 @@ export function useAuthTokenFromCookie(activeUsername, activeFriendName) {
                 }
             }
         }
-    }, [activeUsername])
+    }, [activeUsername, dispatch, activeFriendName])
 }

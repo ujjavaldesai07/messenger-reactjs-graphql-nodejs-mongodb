@@ -17,6 +17,7 @@ import {GET_FRIEND_SUGGESTIONS, SEND_FRIEND_REQUEST} from "../../constants/graph
 import log from 'loglevel';
 import {useDispatch, useSelector} from "react-redux";
 import {PENDING_REQUEST_NOTIFICATION} from "../../actions/types";
+import {useSidebarStyles} from "../../styles/sidebarStyles";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -27,11 +28,13 @@ const useStyles = makeStyles((theme) => ({
     },
     fab: {
         margin: theme.spacing(1),
-    },
+    }
 }));
 
 export default function SearchBar(props) {
     const classes = useStyles();
+    const sidebarClasses = useSidebarStyles()
+
     const [value, setValue] = useState('')
     const [findBtnState, setFindBtnState] = useState(false)
     const {data, loading} = useQuery(GET_FRIEND_SUGGESTIONS,
@@ -47,15 +50,21 @@ export default function SearchBar(props) {
             data.friendSuggestions.forEach(keyword => {
                 log.info(`keyword = ${keyword}`)
                 suggestionComponentList.push(
-                    <ListItem key={keyword} id={keyword} style={{paddingRight: 0}}>
+                    <ListItem key={keyword} id={keyword}>
                         <ListItemIcon><UserAvatar size="md" name={keyword}/></ListItemIcon>
-                        <ListItemText primary={keyword}/>
-                        <Tooltip title="Send Request" arrow placement="right" id={keyword}
-                                 onClick={handleFriendRequestBtn}>
-                            <Fab color="primary" className={classes.fab} size="small">
-                                <AddIcon fontSize="small"/>
-                            </Fab>
-                        </Tooltip>
+                        <ListItemText primary={keyword} classes={{primary: sidebarClasses.primaryText}}/>
+                        {props.excludeSearchSuggestions.has(keyword) ?
+                            <Button variant="outlined" disabled color="primary" size="small"
+                                    style={{height: 30, fontSize: "0.5rem"}}>
+                                {props.excludeSearchSuggestions.get(keyword)}
+                            </Button> :
+                            <Tooltip title="Send Request" arrow placement="right" id={keyword}
+                                     onClick={handleFriendRequestBtn}>
+                                <Fab color="primary" className={classes.fab} size="small">
+                                    <AddIcon fontSize="small"/>
+                                </Fab>
+                            </Tooltip>
+                        }
                     </ListItem>
                 )
             })
@@ -111,13 +120,15 @@ export default function SearchBar(props) {
     }
 
     const handleFriendRequestBtn = (e) => {
+        let friendUserName = e.currentTarget.getAttribute("aria-describedby")
+        log.info(`friendUserName = ${friendUserName}`)
         sendFriendRequest({
             variables: {
                 user_name: activeUsername,
-                friend_user_name: e.currentTarget.getAttribute("aria-describedby")
+                friend_user_name: friendUserName
             }
         }).then(res => {
-            if(res.data.sendFriendRequest) {
+            if (res.data.sendFriendRequest) {
                 const {friend, request_notification} = res.data.sendFriendRequest
                 dispatch({
                     type: PENDING_REQUEST_NOTIFICATION,
@@ -126,6 +137,7 @@ export default function SearchBar(props) {
                         pendingRequests: friend
                     }
                 })
+                props.friendRequestAcceptHandler(friendUserName)
             }
         }).catch(e => log.error(`[SEND_FRIEND_REQUEST]: Unable to send friend request to graphql server e = ${e}`))
     }

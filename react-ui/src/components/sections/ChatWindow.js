@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React from 'react';
 import {useMutation} from '@apollo/client';
 import {Grid} from "@material-ui/core";
 import backgroundImage from '../../images/background.jpg'

@@ -1,7 +1,7 @@
 import {makeStyles} from "@material-ui/core/styles";
 import {DRAWER_WIDTH} from "../constants/constants";
 
-export const useStyles = makeStyles((theme) => ({
+export const useSidebarStyles = makeStyles((theme) => ({
     root: {
         display: 'flex',
     },
@@ -59,5 +59,11 @@ export const useStyles = makeStyles((theme) => ({
     },
     content: {
         flexShrink: 1,
+    },
+    primaryText: {
+        width: 80,
+        overflow: "hidden",
+        whiteSpace: "nowrap",
+        textOverflow: "ellipsis"
     }
 }));
