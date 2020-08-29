@@ -21,14 +21,14 @@ const useStyles = makeStyles({
     }
 });
 
-export default function IconTabs({tabIconStateHandler, notifications}) {
+export default function IconTabs({tabIconStateHandler, requestNotification, sidebarTabValue}) {
     const classes = useStyles();
-    const [value, setValue] = React.useState(0);
+    const [tabValue, setTabValue] = React.useState(sidebarTabValue);
 
     const handleChange = (event, newValue) => {
         log.info(`[IconTabs] newValue = ${newValue}`)
         tabIconStateHandler(newValue)
-        setValue(newValue);
+        setTabValue(newValue);
     };
 
     const renderIconWithBadge = (icon, content) => {
@@ -39,10 +39,12 @@ export default function IconTabs({tabIconStateHandler, notifications}) {
         )
     }
 
+    log.info(`[IconTabs] requestNotification= ${JSON.stringify(requestNotification)}`)
+
     return (
         <Paper square className={classes.root}>
             <Tabs
-                value={value}
+                value={tabValue}
                 onChange={handleChange}
                 indicatorColor="secondary"
                 textColor="secondary"
@@ -50,10 +52,12 @@ export default function IconTabs({tabIconStateHandler, notifications}) {
                 classes={{flexContainer: classes.tabsFlexContainer}}>
                 <Tab icon={<ChatIcon/>} classes={{root: classes.tabRoot}}/>
 
-                <Tab icon={renderIconWithBadge(<FavoriteIcon />, notifications.newRequests)}
+                <Tab icon={renderIconWithBadge(<FavoriteIcon />,
+                    requestNotification ? requestNotification.newRequests: 0)}
                      classes={{root: classes.tabRoot}}/>
 
-                <Tab icon={renderIconWithBadge(<PersonPinIcon />, notifications.pendingRequests)}
+                <Tab icon={renderIconWithBadge(<PersonPinIcon />,
+                    requestNotification? requestNotification.pendingRequests: 0)}
                      classes={{root: classes.tabRoot}}/>
             </Tabs>
         </Paper>

@@ -9,10 +9,10 @@ export const INITIAL_NOTIFICATION_STATE = {
     newRequests: [],
     acceptedRequests: [],
     pendingRequests: [],
-    initialized: false
+    requestNotification: null
 }
 
 export const INITIAL_FRIEND_SELECTED_STATE = {
     channel_id: 0,
-    friend_user_name: 'default'
+    friend_user_name: null
 }

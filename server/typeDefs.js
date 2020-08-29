@@ -7,14 +7,25 @@ type Message {
     chatPartner: String!
 }
 
+type TotalRequestNotification {
+    newRequests: Int
+    pendingRequests: Int
+}
+
 type Friend {
-    channel_id: ID!
-    friend_user_name: ID!,
-    request_status: String!
+    channel_id: ID
+    friend_user_name: ID
+    request_status: String
+}
+
+type AppNotifications {
+    request_notification: TotalRequestNotification
+    friend: Friend
 }
 
 type UserProfile {
     user_name: String!
+    request_notification: TotalRequestNotification
     friends: [Friend]
 }
 
@@ -39,13 +50,14 @@ type Query {
 
 type Mutation {
     addUserProfile(user_name: String!): UserProfile
-    sendFriendRequest(user_name: String!, friend_user_name: String!): Friend
-    acceptFriendRequest(user_name: String!, friend_user_name: String!): Friend
+    sendFriendRequest(user_name: String!, friend_user_name: String!): AppNotifications
+    resetNotification(user_name: String!, notification_name: String!): AppNotifications
+    acceptFriendRequest(user_name: String!, friend_user_name: String!): AppNotifications
     postConversation(channel_id: ID!, message: String!, user_name: String!): Conversation
 }
 
 type Subscription {
     conversations (channel_id: ID!, user_name: String!): [Conversation]
-    notifications (user_name: String!): Friend
+    app_notifications (user_name: String!): AppNotifications
 }
 `;

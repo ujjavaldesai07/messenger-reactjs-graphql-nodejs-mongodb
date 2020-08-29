@@ -2,7 +2,7 @@ import {FRIEND_SELECTED, SIDEBAR_DRAWER_CLOSED, SIDEBAR_DRAWER_OPEN} from "../ac
 import log from 'loglevel';
 import {INITIAL_FRIEND_SELECTED_STATE} from "../constants/constants";
 
-export const sidebarDrawerReducer = (state = false, action) => {
+export const sidebarDrawerReducer = (state = true, action) => {
     switch (action.type) {
         case SIDEBAR_DRAWER_OPEN:
             log.info(`SIDEBAR_DRAWER_OPEN`)

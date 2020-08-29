@@ -47,7 +47,7 @@ export default function SearchBar(props) {
             data.friendSuggestions.forEach(keyword => {
                 log.info(`keyword = ${keyword}`)
                 suggestionComponentList.push(
-                    <ListItem key={keyword} id={keyword}>
+                    <ListItem key={keyword} id={keyword} style={{paddingRight: 0}}>
                         <ListItemIcon><UserAvatar size="md" name={keyword}/></ListItemIcon>
                         <ListItemText primary={keyword}/>
                         <Tooltip title="Send Request" arrow placement="right" id={keyword}
@@ -66,9 +66,9 @@ export default function SearchBar(props) {
     const renderSearchBarSection = () => {
         return (
             <>
-                <form className={classes.root} noValidate autoComplete="off" style={{height: 50}}>
+                <form className={classes.root} noValidate autoComplete="off" style={{height: 50, width: "inherit"}}>
                     <TextField
-                        style={{minWidth: "-webkit-fill-available"}}
+                        style={{width: "fit-content"}}
                         id="standard-basic"
                         value={value}
                         onChange={(e) => setValue(e.target.value)}
@@ -93,7 +93,7 @@ export default function SearchBar(props) {
                     />
                 </form>
 
-                <List>
+                <List style={{width: "inherit"}}>
                     {renderFriends()}
                 </List>
             </>
@@ -117,15 +117,13 @@ export default function SearchBar(props) {
                 friend_user_name: e.currentTarget.getAttribute("aria-describedby")
             }
         }).then(res => {
-            if (res) {
-                log.info(`[SEND_FRIEND_REQUEST]: response = ${JSON.stringify(res.data.sendFriendRequest)}`)
-                const {friend_user_name, channel_id, request_status} = res.data.sendFriendRequest
+            if(res.data.sendFriendRequest) {
+                const {friend, request_notification} = res.data.sendFriendRequest
                 dispatch({
                     type: PENDING_REQUEST_NOTIFICATION,
                     payload: {
-                        pendingRequests: {
-                            friend_user_name, channel_id, request_status
-                        }
+                        requestNotification: request_notification,
+                        pendingRequests: friend
                     }
                 })
             }

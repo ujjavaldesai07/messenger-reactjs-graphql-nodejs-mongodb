@@ -5,7 +5,6 @@ import backgroundImage from '../../images/background.jpg'
 import {
     CHAT_WINDOW_PADDING,
     DRAWER_WIDTH,
-    getChannelId,
     SIDEBAR_PADDING,
     TOP_BOTTOM_POSITION
 } from "../../constants/constants";
@@ -14,7 +13,6 @@ import {MessageBox} from "../ui/MessageBox";
 import {Conversation} from "../ui/Conversation";
 import {POST_CONVERSATION} from "../../constants/graphql";
 import {useSelector} from "react-redux";
-import history from "../../history";
 
 export function ChatWindow() {
     const activeUsername = useSelector(state => state.activeUsernameReducer)
@@ -23,8 +21,9 @@ export function ChatWindow() {
     const sidebarDrawerStatus = useSelector(state => state.sidebarDrawerReducer)
     const sidebarPadding = sidebarDrawerStatus ? DRAWER_WIDTH + CHAT_WINDOW_PADDING : SIDEBAR_PADDING
 
-    if(!activeUsername) {
-        history.push("/login")
+    log.info(`friend_user_name = ${friend_user_name}`)
+
+    if (!activeUsername || !friend_user_name) {
         return null
     }
 
@@ -42,7 +41,7 @@ export function ChatWindow() {
         }).catch(e => log.error(`[POST MESSAGE]: Unable to post message to graphql server e = ${e}`))
     }
 
-    log.info(`[ChatWindow] Rendering ChatWindow Component....`)
+    log.info(`[ChatWindow] Rendering ChatWindow Component...`)
     return (
         <Grid container style={{position: "absolute", bottom: TOP_BOTTOM_POSITION, height: `92%`}}>
             <Grid container
@@ -55,12 +54,13 @@ export function ChatWindow() {
                       position: "relative",
                   }}>
                 <Grid container style={{height: "fit-content"}}>
-                    {friend_user_name && activeUsername ?
-                        <Conversation channel_id={channel_id}
-                                      activeFriendName={friend_user_name}/> : null}
+                    <Conversation channel_id={channel_id}
+                                  activeFriendName={friend_user_name}/>
                 </Grid>
             </Grid>
-            <MessageBox onMessageSend={onMessageSend} sidebarPadding={sidebarPadding - CHAT_WINDOW_PADDING}/>
+            <MessageBox onMessageSend={onMessageSend}
+                        sidebarPadding={sidebarPadding - CHAT_WINDOW_PADDING}/>
+
         </Grid>
     )
 }

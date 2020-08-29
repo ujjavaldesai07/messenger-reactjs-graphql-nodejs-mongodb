@@ -1,5 +1,6 @@
 import pkg from "graphql-yoga"
 import {Conversation, UserProfile} from "./model.js";
+import {updateAcceptRequestQuery, updateSendRequestQuery} from "./modelOperations.js";
 
 const {PubSub} = pkg;
 export const pubsub = new PubSub()
@@ -20,7 +21,7 @@ export const resolvers = {
                     $match: {
                         user_name: user_name,
                         $expr: {
-                            $gt: [ { $size: "$friends" }, 0 ]
+                            $gt: [{$size: "$friends"}, 0]
                         }
                     }
                 },
@@ -31,7 +32,7 @@ export const resolvers = {
                                 input: "$friends",
                                 as: "friend",
                                 cond: {
-                                    $eq: [ "$$friend.friend_user_name", friend_user_name ]
+                                    $eq: ["$$friend.friend_user_name", friend_user_name]
                                 }
                             }
                         }
@@ -40,7 +41,7 @@ export const resolvers = {
                 {
                     $project:
                         {
-                            data: { $arrayElemAt: [ "$friends", 0 ] },
+                            data: {$arrayElemAt: ["$friends", 0]},
                         }
                 }
             ])
@@ -71,7 +72,7 @@ export const resolvers = {
         },
         friendSuggestions: (parent, {prefix}) => {
             try {
-                if (prefix.length !== '') {
+                if (prefix !== '') {
                     return friendSuggestionList.get(prefix.toLowerCase())
                 }
             } catch (e) {
@@ -89,22 +90,45 @@ export const resolvers = {
     },
     Mutation: {
         postConversation: async (_, {channel_id, message, user_name}) => {
+            console.log(`postConversation Invoked by user_name = ${user_name}`)
             const res = await Conversation.findOneAndUpdate(
                 {channel_id: channel_id},
                 {$push: {"messages": [{message: message, user_name: user_name}]}},
-                {new: true, upsert: true, rawResult: true})
+                {new: true, upsert: true})
 
-            console.log(`res = ${JSON.stringify(res.value.messages)}`)
+            console.log(`res = ${JSON.stringify(res)}`)
 
             // if no error then insertion is successful and return the object
-            if (res.lastErrorObject.updatedExisting) {
+            if (res) {
                 console.log(`[postConversation] conversation is added successfully for channel_id = ${channel_id}....`)
-                pubsub.publish(channel_id, {conversations: res.value.messages})
+                pubsub.publish(channel_id, {conversations: res.messages})
                 return {message: message, user_name: user_name}
             }
 
             console.log(`[postConversation] Fail to add conversation for channel_id = ${channel_id}....`)
             return null
+        },
+        resetNotification: async (_, {user_name, notification_name}) => {
+            console.log(`[resetNotification] user_name = ${user_name}, notification_name = ${notification_name}`)
+            const notificationFieldPath = `request_notification.${notification_name}`
+            const res = await UserProfile.findOneAndUpdate(
+                {user_name: user_name},
+                {
+                    $set: {
+                        [notificationFieldPath]: 0
+                    }
+                },
+                {new: true})
+
+            try {
+                console.log(`[resetNotification] res = ${JSON.stringify(res)}`)
+
+                console.log(`[resetNotification] resetNotification is published successfully...`)
+                return {request_notification: res.request_notification}
+
+            } catch (e) {
+                console.log(`[resetNotification] Fail to reset notification e = ${e}`)
+            }
         },
         addUserProfile: async (_, {user_name}) => {
 
@@ -113,7 +137,11 @@ export const resolvers = {
             console.log(`[addUserProfile] res1 = ${JSON.stringify(res1)}`)
 
             if (!res1) {
-                const userProfile = new UserProfile({user_name: user_name, friends: []})
+                const userProfile = new UserProfile({
+                    user_name: user_name,
+                    request_notification: {newRequests: 0, pendingRequests: 0}, friends: []
+                })
+
                 const res2 = await userProfile.save()
 
                 console.log(`[addUserProfile] res2 = ${JSON.stringify(res2)}`)
@@ -128,7 +156,7 @@ export const resolvers = {
                     }
 
                     console.log(`[addUserProfile] UserProfile for ${user_name} is added successfully....`)
-                    return {user_name: user_name, friends: []}
+                    return userProfile
                 }
             }
 
@@ -145,55 +173,48 @@ export const resolvers = {
                 }
 
                 const channel_id = Date.now()
-                const userData = {
-                    friend_user_name: friend_user_name,
-                    channel_id: channel_id,
-                    request_status: "pending"
-                }
 
                 // create friend request with pending status in user profile
-                let res1 = await UserProfile.updateOne(
-                    {
-                        user_name: user_name,
-                        friends: {"$not": {"$elemMatch": {"friend_user_name": friend_user_name}}}
-                    },
-                    {
-                        $push: {
-                            "friends": [userData]
-                        }
-                    },
-                )
+                const userSendQueryResult = await updateSendRequestQuery(user_name, friend_user_name, channel_id,
+                    "pending", "pendingRequests")
 
-                console.log(`[SendFriendRequest] res1 = ${JSON.stringify(res1)}`)
+                console.log(`[SendFriendRequest] userSendQueryResult = ${JSON.stringify(userSendQueryResult)}`)
 
                 // if no error then insertion is successful and return the object
-                if (res1.nModified === 1) {
-                    const friendData = {
-                        friend_user_name: user_name,
-                        channel_id: channel_id,
-                        request_status: "new request"
-                    }
+                if (userSendQueryResult) {
 
                     // create friend request with pending status in friend's profile
-                    let res2 = await UserProfile.updateOne(
-                        {
-                            user_name: friend_user_name,
-                            friends: {"$not": {"$elemMatch": {"friend_user_name": user_name}}}
-                        },
-                        {
-                            $push: {
-                                "friends": [friendData]
+                    const friendSendQueryResult = await updateSendRequestQuery(friend_user_name, user_name, channel_id,
+                        "new request", "newRequests")
+
+                    console.log(`[SendFriendRequest] friendSendQueryResult = ${JSON.stringify(friendSendQueryResult)}`)
+
+                    if (friendSendQueryResult) {
+                        const otherUserNewFriend = friendSendQueryResult.friends[friendSendQueryResult.friends.length-1]
+
+                        // friend request activity
+                        pubsub.publish(friend_user_name, {
+                            app_notifications: {
+                                request_notification: friendSendQueryResult.request_notification,
+                                friend: {
+                                    channel_id: otherUserNewFriend.channel_id,
+                                    friend_user_name: otherUserNewFriend.friend_user_name,
+                                    request_status: otherUserNewFriend.request_status
+                                }
                             }
                         })
 
-                    console.log(`[SendFriendRequest] res2 = ${JSON.stringify(res2)}`)
-                    if (res2.nModified === 1) {
                         console.log(`[SendFriendRequest] Friend Status changed to pending successfully....`)
 
-                        console.log(`[SendFriendRequest]  publishing to channel = ${friend_user_name}, data = ${friendData}`)
-                        pubsub.publish(friend_user_name, {notifications: friendData})
-
-                        return userData
+                        const userNewFriend = userSendQueryResult.friends[userSendQueryResult.friends.length-1]
+                        return {
+                            request_notification: userSendQueryResult.request_notification,
+                            friend: {
+                                channel_id: userNewFriend.channel_id,
+                                friend_user_name: userNewFriend.friend_user_name,
+                                request_status: userNewFriend.request_status
+                            }
+                        }
                     }
                 }
 
@@ -207,64 +228,56 @@ export const resolvers = {
         },
         acceptFriendRequest: async (_, {user_name, friend_user_name}) => {
             try {
-                console.log(`[AcceptFriendRequest] AcceptFriendRequest is invoked....`)
+                console.log(`[AcceptFriendRequest] AcceptFriendRequest is invoked user_name = ${user_name},friend_user_name = ${friend_user_name} ....`)
 
                 if (user_name.localeCompare(friend_user_name) === 0) {
                     console.log(`[AcceptFriendRequest] Error: friend_user_name and user_name are identical....`)
                     return null
                 }
 
-                // accept friend request and change status to accepted in friend's profile
-                let res1 = await UserProfile.updateOne(
-                    {
-                        user_name: user_name,
-                        friends: {"$elemMatch": {"friend_user_name": friend_user_name, request_status: "new request"}}
-                    },
-                    {$set: {"friends.$.request_status": "accepted"}},
-                    {upsert: true})
+                const userAcceptQueryResult = await updateAcceptRequestQuery(user_name, friend_user_name,
+                    "new request", "newRequests")
 
-                console.log(`[AcceptFriendRequest] res1 = ${JSON.stringify(res1)}`)
+                console.log(`[AcceptFriendRequest] userAcceptQueryResult = ${JSON.stringify(userAcceptQueryResult)}`)
 
                 // if no error then insertion is successful and return the object
-                if (res1.nModified === 1) {
+                if (userAcceptQueryResult) {
 
-                    // accept friend request and change status to accepted in user's profile
-                    let res2 = await UserProfile.findOneAndUpdate(
-                        {
-                            user_name: friend_user_name,
-                            friends: {"$elemMatch": {"friend_user_name": user_name, request_status: "pending"}}
-                        },
-                        {$set: {"friends.$.request_status": "accepted"}},
-                        {new: true, upsert: true, rawResult: true})
+                    const friendAcceptQueryResult = await updateAcceptRequestQuery(friend_user_name, user_name,
+                        "pending", "pendingRequests")
 
-                    console.log(`[AcceptFriendRequest] res2 = ${JSON.stringify(res2)}`)
-                    if (res2.lastErrorObject.updatedExisting) {
-                        console.log(`res = ${JSON.stringify(res2)}`)
+                    console.log(`[AcceptFriendRequest] friendAcceptQueryResult = ${JSON.stringify(friendAcceptQueryResult)}`)
 
-                        let channel_id = res2.value.friends[0].channel_id
-                        console.log(`channel_id = ${channel_id}`)
-
-                        const conversation = new Conversation({channel_id: channel_id, messages: []})
+                    if (friendAcceptQueryResult) {
+                        // const channel_id = friendAcceptQueryResult.[0].channel_id
+                        const channel_id = friendAcceptQueryResult.friends[0].channel_id
+                        const conversation = new Conversation({
+                            channel_id: channel_id, messages: []})
 
                         // add new conversation channel
                         await conversation.save()
 
-                        const friendData = {
-                            friend_user_name: friend_user_name,
-                            channel_id: channel_id,
-                            request_status: "accepted"
-                        }
-
+                        // friend request activity
                         pubsub.publish(friend_user_name, {
-                            friend: {
-                                friend_user_name: user_name,
-                                channel_id: channel_id,
-                                request_status: "accepted"
+                            app_notifications: {
+                                request_notification: friendAcceptQueryResult.request_notification,
+                                friend: {
+                                    friend_user_name: user_name,
+                                    channel_id: channel_id,
+                                    request_status: "accepted"
+                                }
                             }
                         })
 
                         console.log(`[AcceptFriendRequest] Friend Status changed to accepted successfully....`)
-                        return friendData
+                        return {
+                            request_notification: userAcceptQueryResult.request_notification,
+                            friend: {
+                                channel_id: channel_id,
+                                friend_user_name: friend_user_name,
+                                request_status: "accepted"
+                            }
+                        }
                     }
                 }
 
@@ -280,7 +293,7 @@ export const resolvers = {
     Subscription: {
         conversations: {
             subscribe: async (parent, {channel_id, user_name}, {pubsub}) => {
-                console.log(`[Subscription] user_name = ${user_name} subscribes conversations channel_id = ${channel_id}`)
+                console.log(`[Subscription] user_name = ${user_name} subscribes to conversations on channel_id = ${channel_id}`)
                 const res = await Conversation.findOne({channel_id: channel_id})
 
                 if (res) {
@@ -295,9 +308,9 @@ export const resolvers = {
                 }
             }
         },
-        notifications: {
+        app_notifications: {
             subscribe: async (parent, {user_name}, {pubsub}) => {
-                console.log(`[Subscription] notifications subscribe() user_name = ${user_name}`)
+                console.log(`[Subscription] user_name = ${user_name} subscribes to app_notifications`)
                 return pubsub.asyncIterator(user_name);
             }
         }

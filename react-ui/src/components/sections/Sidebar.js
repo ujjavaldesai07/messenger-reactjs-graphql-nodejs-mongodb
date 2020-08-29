@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import clsx from 'clsx';
-import {makeStyles, useTheme} from '@material-ui/core/styles';
+import {useTheme} from '@material-ui/core/styles';
 import Drawer from '@material-ui/core/Drawer';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
@@ -22,57 +22,86 @@ import log from "loglevel";
 import {useDispatch, useSelector} from "react-redux";
 import {
     ACCEPTED_REQUEST_NOTIFICATION, ACTIVE_USERNAME,
-    FRIEND_SELECTED, NEW_REQUEST_NOTIFICATION,
+    FRIEND_SELECTED, NEW_REQUEST_NOTIFICATION, PENDING_REQUEST_NOTIFICATION, REMOVE_NOTIFICATION, REQUEST_NOTIFICATION,
     SIDEBAR_DRAWER_CLOSED,
     SIDEBAR_DRAWER_OPEN
 } from "../../actions/types";
 import Cookies from "js-cookie";
 import SearchBar from "../ui/SearchBar";
 import {useMutation, useQuery, useSubscription} from "@apollo/client";
-import {ACCEPT_FRIEND_REQUEST, GET_MY_FRIENDS, GET_NOTIFICATION, SEND_FRIEND_REQUEST} from "../../constants/graphql";
+import {
+    ACCEPT_FRIEND_REQUEST,
+    GET_USER_PROFILE,
+    GET_APP_NOTIFICATION,
+    RESET_NOTIFICATION
+} from "../../constants/graphql";
 import {useStyles} from "../../styles/sidebarStyles"
 import IconTabs from "../ui/IconTabs";
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
-import backgroundImage from "../../images/background.jpg";
+import history from "../../history";
 
 export const SideBar = () => {
     const classes = useStyles();
     const theme = useTheme();
     const dispatch = useDispatch()
     const sidebarDrawerStatus = useSelector(state => state.sidebarDrawerReducer)
-    const [findBtnState, setFindBtnState] = useState(false)
-    const [tabIconState, setTabIconState] = useState(0)
+    const [sidebarState, setSidebarState] = useState({
+        tabValue: 0,
+        findBtnState: false,
+    })
     const activeUsername = useSelector(state => state.activeUsernameReducer)
     const notificationReducer = useSelector(state => state.notificationReducer)
     const selectedFriend = useSelector(state => state.friendSelectionReducer)
-    const {data: friendsData, loading: friendsLoading} = useQuery(GET_MY_FRIENDS,
+
+    // get data for the first time render
+    const {data: queriedUserProfile, loading: queriedUserProfileLoading} = useQuery(GET_USER_PROFILE,
         {variables: {user_name: activeUsername}})
-    const {data: notificationData, loading: notificationLoading} = useSubscription(GET_NOTIFICATION, {
+
+    // update this component when we get new notification
+    const {data: subscribedData, loading: subscribedDataLoading} = useSubscription(GET_APP_NOTIFICATION, {
         variables: {user_name: activeUsername}
     })
     const [acceptFriendRequest] = useMutation(ACCEPT_FRIEND_REQUEST)
-    const _friendNotifications = {newRequests: 0, pendingRequests: 0, acceptedRequests: 0}
 
-    log.info(`[SideBar] 1-notificationData = ${JSON.stringify(notificationData)}`)
+    // reset notification if we have seen it.
+    const [resetNotification] = useMutation(RESET_NOTIFICATION)
+
+    log.info(`[SideBar] subscribedData = ${JSON.stringify(subscribedData)}`)
+    log.info(`[SideBar] queriedUserProfile = ${JSON.stringify(queriedUserProfile)}`)
     useEffect(() => {
-        log.info(`[SideBar] 2-notificationData = ${JSON.stringify(notificationData)}, notificationLoading = ${notificationLoading}`)
-        if (!notificationLoading && notificationData && notificationData.notifications) {
-            let notification = notificationData.notifications
-
-            if (notification.request_status.charAt(0) === 'n') {
+        log.info(`[SideBar] subscribedData = ${JSON.stringify(subscribedData)}, notificationLoading = ${subscribedDataLoading}`)
+        if (!subscribedDataLoading && subscribedData && subscribedData.app_notifications) {
+            if (subscribedData.app_notifications.friend) {
+                let {friend, request_notification} = subscribedData.app_notifications
+                switch (friend.request_status && friend.request_status.charAt(0)) {
+                    case 'n':
+                        dispatch({
+                            type: NEW_REQUEST_NOTIFICATION,
+                            payload: {newRequests: friend, requestNotification: request_notification}
+                        })
+                        break
+                    case 'a':
+                        dispatch({
+                            type: ACCEPTED_REQUEST_NOTIFICATION,
+                            payload: {acceptedRequests: friend, requestNotification: request_notification}
+                        })
+                        break
+                    case 'p':
+                        dispatch({
+                            type: PENDING_REQUEST_NOTIFICATION,
+                            payload: {pendingRequests: friend, requestNotification: request_notification}
+                        })
+                        break
+                }
+            } else if (subscribedData.app_notifications.request_notification) {
                 dispatch({
-                    type: NEW_REQUEST_NOTIFICATION,
-                    payload: {newRequests: notification}
-                })
-            } else if (notification.request_status.charAt(0) === 'a') {
-                dispatch({
-                    type: ACCEPTED_REQUEST_NOTIFICATION,
-                    payload: {acceptedRequests: notification}
+                    type: REQUEST_NOTIFICATION,
+                    payload: {requestNotification: subscribedData.app_notifications.request_notification}
                 })
             }
         }
 
-    }, notificationData)
+    }, [subscribedData])
 
     const handleDrawerOpen = () => {
         dispatch({
@@ -84,7 +113,7 @@ export const SideBar = () => {
         dispatch({
             type: SIDEBAR_DRAWER_CLOSED
         })
-        setFindBtnState(false)
+        setSidebarState({...sidebarState, findBtnState: false})
     };
 
     const handleSidebarOptionBtn = (e) => {
@@ -161,21 +190,19 @@ export const SideBar = () => {
         friends.forEach(({request_status, channel_id, friend_user_name}) => {
             switch (request_status.charAt(0)) {
                 case 'a':
-                    if (tabIconState === 0) {
+                    if (sidebarState.tabValue === 0) {
                         friendComponentList.push(renderAcceptedFriend(channel_id, friend_user_name, newlyJoined))
                     }
                     break
                 case 'n':
-                    if (tabIconState === 1) {
+                    if (sidebarState.tabValue === 1) {
                         friendComponentList.push(renderNewFriendsRequest(channel_id, friend_user_name, newlyJoined))
                     }
-                    ++_friendNotifications.newRequests
                     break
                 case 'p':
-                    if (tabIconState === 2) {
+                    if (sidebarState.tabValue === 2) {
                         friendComponentList.push(renderPendingFriendRequest(channel_id, friend_user_name, newlyJoined))
                     }
-                    ++_friendNotifications.pendingRequests
                     break
                 default:
                     throw new Error(`[SideBar] request_status option ${request_status} not supported.`)
@@ -184,7 +211,7 @@ export const SideBar = () => {
     }
 
     const renderFriendsBasedOnTabSelection = () => {
-        log.info(`[SideBar] renderFriends friends = ${JSON.stringify(friendsData)}, loading = ${friendsLoading}`)
+        log.info(`[SideBar] renderFriends queriedUserProfile = ${JSON.stringify(queriedUserProfile)}, sidebarState = ${JSON.stringify(sidebarState)}`)
 
         let friendComponentList = []
 
@@ -192,16 +219,16 @@ export const SideBar = () => {
         addFriendBasedOnRequestStatus(notificationReducer.newRequests, friendComponentList)
         addFriendBasedOnRequestStatus(notificationReducer.pendingRequests, friendComponentList)
 
-        if (!friendsLoading && friendsData && friendsData.friends) {
-            addFriendBasedOnRequestStatus(friendsData.friends, friendComponentList)
+        if (!queriedUserProfileLoading && queriedUserProfile && queriedUserProfile.userProfile) {
+            addFriendBasedOnRequestStatus(queriedUserProfile.userProfile.friends, friendComponentList)
         }
 
         if (friendComponentList.length === 0) {
-            if (tabIconState === 0 && sidebarDrawerStatus) {
+            if (sidebarState.tabValue === 0 && sidebarDrawerStatus) {
                 friendComponentList.push(renderEmptyRequestComponent('No Friends'))
-            } else if (tabIconState === 1 && _friendNotifications.newRequests === 0) {
+            } else if (sidebarState.tabValue === 1) {
                 friendComponentList.push(renderEmptyRequestComponent('No New Requests'))
-            } else if (tabIconState === 2 && _friendNotifications.pendingRequests === 0) {
+            } else if (sidebarState.tabValue === 2) {
                 friendComponentList.push(renderEmptyRequestComponent('No Pending Requests'))
             }
         }
@@ -217,16 +244,32 @@ export const SideBar = () => {
     }
 
     const changeFindBtnState = (value) => {
-        setFindBtnState(value)
+        setSidebarState({...sidebarState, findBtnState: value})
     }
 
     const tabIconStateHandler = (value) => {
-        setTabIconState(value)
+        switch (value) {
+            case 1:
+                if (notificationReducer.requestNotification
+                    && notificationReducer.requestNotification.newRequests > 0) {
+                    log.info(`Resetting newRequests....`)
+                    resetNotificationRequest("newRequests")
+                }
+                break
+            case 2:
+                if (notificationReducer.requestNotification
+                    && notificationReducer.requestNotification.pendingRequests > 0) {
+                    log.info(`Resetting pendingRequests....`)
+                    resetNotificationRequest("pendingRequests")
+                }
+                break
+        }
+        setSidebarState({...sidebarState, tabValue: value})
     }
 
     const handleLogout = () => {
         Cookies.remove(USER_AUTH_COOKIE)
-        Cookies.remove(FRIEND_SELECTED)
+        Cookies.remove(ACTIVE_FRIEND_COOKIE)
         dispatch({
             type: ACTIVE_USERNAME,
             payload: null
@@ -238,6 +281,29 @@ export const SideBar = () => {
                 friend_user_name: 'default'
             }
         })
+        dispatch({
+            type: REMOVE_NOTIFICATION
+        })
+        history.push("/login")
+    }
+
+    const resetNotificationRequest = (notification_name) => {
+        log.info(`[resetNotificationRequest] activeUsername = ${activeUsername}, notification_name = ${notification_name}`)
+        resetNotification({
+            variables: {
+                user_name: activeUsername,
+                notification_name: notification_name
+            }
+        }).then(res => {
+            log.info(`[resetNotificationRequest] res.data.resetNotification = ${JSON.stringify(res.data.resetNotification)}`)
+            if (res.data.resetNotification) {
+                log.info(`[resetNotificationRequest] dispatching REQUEST_NOTIFICATION...`)
+                dispatch({
+                    type: REQUEST_NOTIFICATION,
+                    payload: res.data.resetNotification.request_notification
+                })
+            }
+        }).catch(e => log.error(`[RESET_NOTIFICATION]: Unable to reset notification request to graphql server e = ${e}`))
     }
 
     const acceptFriendRequestHandler = (e) => {
@@ -247,22 +313,21 @@ export const SideBar = () => {
                 friend_user_name: e.currentTarget.value
             }
         }).then(res => {
-            if (res) {
-                log.info(`[ACCEPT_FRIEND_REQUEST]: response = ${JSON.stringify(res.data.acceptFriendRequest)}`)
-                const {friend_user_name, channel_id, request_status} = res.data.acceptFriendRequest
+            if (res.data.acceptFriendRequest) {
+                const {friend, request_notification} = res.data.acceptFriendRequest
+                log.info(`[SideBar] acceptFriendRequestHandler response = ${JSON.stringify(res.data.acceptFriendRequest)}`)
                 dispatch({
                     type: ACCEPTED_REQUEST_NOTIFICATION,
                     payload: {
-                        acceptedRequests: {
-                            friend_user_name, channel_id, request_status
-                        }
+                        requestNotification: request_notification,
+                        acceptedRequests: friend
                     }
                 })
             }
         }).catch(e => log.error(`[SEND_FRIEND_REQUEST]: Unable to send friend request to graphql server e = ${e}`))
     }
 
-    log.info(`[SideBar] Rendering SideBar Component....`)
+    log.info(`[SideBar] Rendering SideBar Component....sidebarState = ${JSON.stringify(sidebarState)}`)
 
     return (
         <div className={classes.root}>
@@ -285,9 +350,12 @@ export const SideBar = () => {
                     >
                         <MenuIcon/>
                     </IconButton>
-                    <Typography variant="h6" noWrap>
-                        Chat window
+                    <Typography variant="h6">
+                        Messenger
                     </Typography>
+                    <Grid container justify="flex-end">
+                        <UserAvatar size="md" name={activeUsername}/>
+                    </Grid>
                 </Toolbar>
             </AppBar>
             <Drawer
@@ -306,7 +374,7 @@ export const SideBar = () => {
                 <Grid container style={{position: 'sticky', top: 0, zIndex: 1, backgroundColor: "white"}}>
                     <Grid container alignItems="center">
                         <Grid item xs={10}>
-                            {renderTitle(findBtnState ? "Find Friends" : "My Friends")}
+                            {renderTitle(sidebarState.findBtnState ? "Find Friends" : "My Friends")}
                         </Grid>
                         <Grid item xs={2}>
                             <div className={classes.toolbar}>
@@ -323,10 +391,14 @@ export const SideBar = () => {
                         <>
                             <SearchBar changeFindBtnState={changeFindBtnState}/>
                             {
-                                findBtnState ? null :
+                                sidebarState.findBtnState ? null :
                                     <Grid container justify="center">
                                         <IconTabs tabIconStateHandler={tabIconStateHandler}
-                                                  notifications={_friendNotifications}/>
+                                                  sidebarTabValue={sidebarState.tabValue}
+                                                  requestNotification={notificationReducer.requestNotification ?
+                                                      notificationReducer.requestNotification :
+                                                      queriedUserProfile && queriedUserProfile.userProfile ?
+                                                          queriedUserProfile.userProfile.request_notification : null}/>
                                     </Grid>
                             }
                         </>
@@ -334,8 +406,8 @@ export const SideBar = () => {
                 </Grid>
 
                 <Grid container style={{overflow: "auto", position: "relative", bottom: 60, paddingTop: 60}}>
-                    {findBtnState ? null : <List
-                        style={{padding: 0, width: "-webkit-fill-available"}}>
+                    {sidebarState.findBtnState ? null : <List
+                        style={{width: "-webkit-fill-available"}}>
                         {renderFriendsBasedOnTabSelection()}
                     </List>}
                 </Grid>
