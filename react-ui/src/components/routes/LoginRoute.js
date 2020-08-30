@@ -2,25 +2,27 @@ import React, {useState} from 'react';
 import {Button, Grid, TextField} from "@material-ui/core";
 import log from "loglevel";
 import {useDispatch} from "react-redux";
-import {ACTIVE_USERNAME} from "../../actions/types";
+import {ACTIVE_USER_CREDENTIALS} from "../../actions/types";
 import history from "../../history";
 import Cookies from "js-cookie";
 import {
     CARD_COLOR, SENDER_CHAT_BUBBLE_BACKGROUND,
-    SIDEBAR_PANEL_COLOR,
     TITLE_TEXT_COLOR,
-    TOOLBAR_PANEL_COLOR,
     USER_AUTH_COOKIE
 } from "../../constants/constants";
 import {useAuthTokenFromCookie} from "../../hooks/userAuthTokenFromCookie";
 import {useMutation} from "@apollo/client";
 import {ADD_USER_PROFILE} from "../../constants/graphql";
 import Typography from "@material-ui/core/Typography";
+import md5 from 'md5'
+import LoadingBackdrop from "../ui/LoadingBackdrop";
 
 export function LoginRoute() {
-    const [loginState, setLoginState] = useState({user_name: '', password: ''})
+    const [loginState, setLoginState] = useState({
+        user_name: '', password: '', error: null})
+
     const dispatch = useDispatch()
-    const [addUserProfile] = useMutation(ADD_USER_PROFILE)
+    const [addUserProfile, {loading, error}] = useMutation(ADD_USER_PROFILE)
 
     useAuthTokenFromCookie(null)
 
@@ -34,18 +36,34 @@ export function LoginRoute() {
 
     const handleLoginButton = () => {
         log.info(`[LoginRoute] handleLoginButton clicked`)
-        Cookies.set(USER_AUTH_COOKIE, loginState, {expires: 7})
+
+        let credentials = {
+            user_name: loginState.user_name,
+            password: md5(loginState.password)
+        }
 
         addUserProfile({
-            variables: {user_name: loginState}
+            variables: credentials
+        }).then(res => {
+            if (res.data) {
+                if (res.data.addUserProfile && !res.data.addUserProfile.failure) {
+                    Cookies.set(USER_AUTH_COOKIE, credentials, {expires: 7})
+                    dispatch({
+                        type: ACTIVE_USER_CREDENTIALS,
+                        payload: credentials
+                    })
+
+                    if (loginState.error) {
+                        setLoginState({...loginState, error: null})
+                    }
+
+                    history.push("/")
+                } else {
+                    setLoginState({...loginState, error: res.data.addUserProfile.error_msg})
+                }
+            }
         }).catch(e => log.error(`[ADD USER_PROFILE]: Unable to add user profile to graphql server e = ${e}`))
 
-        dispatch({
-            type: ACTIVE_USERNAME,
-            payload: loginState
-        })
-
-        history.push("/")
     }
 
     const renderTextField = (label, handler, textValue, fieldType) => {
@@ -58,6 +76,7 @@ export function LoginRoute() {
                     placeholder={label}
                     label={label}
                     fullWidth
+                    required={true}
                     type={fieldType}
                     InputLabelProps={{
                         style: {color: TITLE_TEXT_COLOR}
@@ -70,12 +89,13 @@ export function LoginRoute() {
         )
     }
 
-    log.info(`[LoginRoute] Rendering LoginRoute Component....`)
+    log.info(`[LoginRoute] Rendering LoginRoute Component....error = ${error}`)
 
     return (
         <Grid id="Login" container justify="center"
               alignItems="center" style={{position: "relative", top: 200, height: 300}}>
-            <Grid item xs={3} container direction="column" spacing={3} justify="center" style={{backgroundColor: CARD_COLOR}}>
+            <Grid item xs={3} container direction="column" spacing={3} justify="center"
+                  style={{backgroundColor: CARD_COLOR}}>
                 <Grid item container justify="center">
                     <Typography variant="h6" style={{color: TITLE_TEXT_COLOR, fontSize: "1.5rem"}}>
                         Welcome To Messenger
@@ -84,14 +104,21 @@ export function LoginRoute() {
                 {renderTextField("Username", handleUsernameChange, loginState.user_name, "text")}
                 {renderTextField("Password", handlePasswordChange, loginState.password, "password")}
 
-                <Grid item style={{ paddingBottom: 30}}>
-                    <Button variant={"contained"}
-                            fullWidth style={{height: 50,
-                        backgroundColor: SENDER_CHAT_BUBBLE_BACKGROUND, color: TITLE_TEXT_COLOR}}
+                {loginState.error ? <Grid item style={{color: "red"}}>
+                    {`Error: ${loginState.error}`}
+                </Grid> : null}
+
+                <Grid item style={{paddingBottom: 30}}>
+                    <Button variant={"contained"} disabled={!loginState.user_name.length || !loginState.password.length}
+                            fullWidth style={{
+                        height: 50,
+                        backgroundColor: SENDER_CHAT_BUBBLE_BACKGROUND, color: TITLE_TEXT_COLOR
+                    }}
                             onClick={handleLoginButton}>
                         Login / SignUp
                     </Button>
                 </Grid>
+                <LoadingBackdrop loading={loading}/>
             </Grid>
         </Grid>
     )

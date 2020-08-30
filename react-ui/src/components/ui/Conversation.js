@@ -9,7 +9,7 @@ import {GET_CONVERSATION} from "../../constants/graphql";
 import {animateScroll as scroll} from 'react-scroll'
 
 export function Conversation({activeFriendName, channel_id}) {
-    const activeUsername = useSelector(state => state.activeUsernameReducer)
+    const {user_name: activeUsername} = useSelector(state => state.activeUsernameReducer)
     const {data, loading} = useSubscription(GET_CONVERSATION, {
         variables: {channel_id: channel_id, user_name: activeUsername}
     })

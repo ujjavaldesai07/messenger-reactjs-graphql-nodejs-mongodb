@@ -6,6 +6,7 @@ import {Provider} from "react-redux";
 import log from "loglevel";
 import {ApolloProvider} from "@apollo/client";
 import {GraphQLClient, ReduxStore} from "./constants/config";
+import {SnackbarProvider} from "notistack";
 
 // log.disableAll(true)
 log.setLevel("info")
@@ -13,7 +14,14 @@ log.setLevel("info")
 ReactDOM.render(
     <Provider store={ReduxStore}>
         <ApolloProvider client={GraphQLClient}>
-            <App/>
+            <SnackbarProvider maxSnack={3}
+                              anchorOrigin={{
+                                  vertical: 'bottom',
+                                  horizontal: 'right',
+                              }}
+            >
+                <App/>
+            </SnackbarProvider>
         </ApolloProvider>
     </Provider>,
     document.getElementById('root')

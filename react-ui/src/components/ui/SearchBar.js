@@ -19,8 +19,6 @@ import {useDispatch, useSelector} from "react-redux";
 import {PENDING_REQUEST_NOTIFICATION} from "../../actions/types";
 import {useSidebarStyles} from "../../styles/sidebarStyles";
 import {
-    NOTIFICATION_COLOR,
-    OPTION_BUTTON_COLOR,
     SENDER_CHAT_BUBBLE_BACKGROUND,
     SIDEBAR_PANEL_COLOR,
     TITLE_TEXT_COLOR
@@ -46,7 +44,7 @@ export default function SearchBar(props) {
     const [findBtnState, setFindBtnState] = useState(false)
     const {data, loading} = useQuery(GET_FRIEND_SUGGESTIONS,
         {variables: {prefix: value}})
-    const activeUsername = useSelector(state => state.activeUsernameReducer)
+    const {user_name: activeUsername} = useSelector(state => state.activeUsernameReducer)
     const [sendFriendRequest] = useMutation(SEND_FRIEND_REQUEST)
     const dispatch = useDispatch()
 

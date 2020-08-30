@@ -27,20 +27,17 @@ export const GET_FRIEND_SUGGESTIONS = gql`
 export const POST_CONVERSATION = gql`
 mutation ($channel_id:ID!, $message:String!, $user_name: String!) {
   postConversation(channel_id: $channel_id, message: $message, user_name: $user_name) {
-    message,
+    message
     user_name
    }
 }
 `
 
 export const ADD_USER_PROFILE = gql`
-mutation ($user_name:String!) {
-  addUserProfile(user_name:$user_name){
-    user_name
-    friends {
-      channel_id
-      friend_user_name
-    }
+mutation ($user_name:String!, $password:String!) {
+  addUserProfile(user_name:$user_name, password:$password){
+    failure
+    error_msg
   }
 }
 `

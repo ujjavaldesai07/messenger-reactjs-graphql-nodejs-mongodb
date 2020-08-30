@@ -1,4 +1,4 @@
-import {FRIEND_SELECTED, SIDEBAR_DRAWER_CLOSED, SIDEBAR_DRAWER_OPEN} from "../actions/types";
+import {ACTIVE_FRIEND_NAME, SIDEBAR_DRAWER_CLOSED, SIDEBAR_DRAWER_OPEN} from "../actions/types";
 import log from 'loglevel';
 import {INITIAL_FRIEND_SELECTED_STATE} from "../constants/constants";
 
@@ -18,7 +18,7 @@ export const sidebarDrawerReducer = (state = true, action) => {
 export const friendSelectionReducer = (state
                                            = INITIAL_FRIEND_SELECTED_STATE, action) => {
     switch (action.type) {
-        case FRIEND_SELECTED:
+        case ACTIVE_FRIEND_NAME:
             return {...state, channel_id: action.payload.channel_id,
                 friend_user_name: action.payload.friend_user_name}
         default:

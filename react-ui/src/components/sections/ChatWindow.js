@@ -13,17 +13,27 @@ import {MessageBox} from "../ui/MessageBox";
 import {Conversation} from "../ui/Conversation";
 import {POST_CONVERSATION} from "../../constants/graphql";
 import {useSelector} from "react-redux";
+import {useSnackbar} from "notistack";
 
 export function ChatWindow() {
-    const activeUsername = useSelector(state => state.activeUsernameReducer)
+    const {user_name: activeUsername} = useSelector(state => state.activeUsernameReducer)
     const {channel_id, friend_user_name} = useSelector(state => state.friendSelectionReducer)
     const [postMessage] = useMutation(POST_CONVERSATION)
     const sidebarDrawerStatus = useSelector(state => state.sidebarDrawerReducer)
     const sidebarPadding = sidebarDrawerStatus ? DRAWER_WIDTH + CHAT_WINDOW_PADDING : SIDEBAR_PADDING
+    const {enqueueSnackbar} = useSnackbar();
 
-    log.info(`friend_user_name = ${friend_user_name}`)
+    if (!activeUsername) {
+        return null
+    }
 
-    if (!activeUsername || !friend_user_name) {
+    if (!friend_user_name) {
+        enqueueSnackbar("Welcome to messenger ! Start finding new friends online.",
+            {
+                variant: "info",
+                autoHideDuration: 5000,
+                preventDuplicate: true
+            })
         return null
     }
 

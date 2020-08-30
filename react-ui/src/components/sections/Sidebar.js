@@ -22,18 +22,17 @@ import {
     PENDING_TEXT,
     ACCEPTED_TEXT,
     REQUESTED_TEXT,
-    RECEIVER_CHAT_BUBBLE_BACKGROUND,
+    SENDER_CHAT_BUBBLE_BACKGROUND,
     TITLE_TEXT_COLOR,
-    TOOLBAR_PANEL_COLOR,
-    SIDEBAR_PANEL_COLOR, LIST_BORDER_COLOR, SENDER_CHAT_BUBBLE_BACKGROUND, NOTIFICATION_COLOR
+    TOOLBAR_PANEL_COLOR
 } from "../../constants/constants";
 import {Badge, Button, Grid} from "@material-ui/core";
 import {UserAvatar} from "../ui/UserAvatar";
 import log from "loglevel";
 import {useDispatch, useSelector} from "react-redux";
 import {
-    ACCEPTED_REQUEST_NOTIFICATION, ACTIVE_USERNAME,
-    FRIEND_SELECTED, NEW_REQUEST_NOTIFICATION, PENDING_REQUEST_NOTIFICATION, REMOVE_NOTIFICATION, REQUEST_NOTIFICATION,
+    ACCEPTED_REQUEST_NOTIFICATION, ACTIVE_USER_CREDENTIALS,
+    ACTIVE_FRIEND_NAME, NEW_REQUEST_NOTIFICATION, PENDING_REQUEST_NOTIFICATION, REMOVE_NOTIFICATION, REQUEST_NOTIFICATION,
     SIDEBAR_DRAWER_CLOSED,
     SIDEBAR_DRAWER_OPEN
 } from "../../actions/types";
@@ -50,15 +49,17 @@ import {useSidebarStyles} from "../../styles/sidebarStyles"
 import IconTabs from "../ui/IconTabs";
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import history from "../../history";
+import {useSnackbar} from "notistack";
 
 export const SideBar = () => {
     const classes = useSidebarStyles();
     const theme = useTheme();
     const dispatch = useDispatch()
     const sidebarDrawerStatus = useSelector(state => state.sidebarDrawerReducer)
-    const activeUsername = useSelector(state => state.activeUsernameReducer)
+    const {user_name: activeUsername} = useSelector(state => state.activeUsernameReducer)
     const notificationReducer = useSelector(state => state.notificationReducer)
     const selectedFriend = useSelector(state => state.friendSelectionReducer)
+    const {enqueueSnackbar} = useSnackbar();
 
     const [sidebarState, setSidebarState] = useState({
         tabValue: 0,
@@ -94,6 +95,13 @@ export const SideBar = () => {
                             tempSearchSuggestions.set(friend.friend_user_name, PENDING_TEXT)
                         }
 
+                        enqueueSnackbar(`[New Request Notification] Received from ${friend.friend_user_name}.`,
+                            {
+                                variant: "info",
+                                autoHideDuration: 5000,
+                                preventDuplicate: true
+                            })
+
                         dispatch({
                             type: NEW_REQUEST_NOTIFICATION,
                             payload: {newRequests: friend, requestNotification: request_notification}
@@ -104,6 +112,14 @@ export const SideBar = () => {
                             tempSearchSuggestions.set(friend.friend_user_name, ACCEPTED_TEXT)
                         }
 
+                        enqueueSnackbar(`[Request Accepted] You and ${friend.friend_user_name} are now friends.`,
+                            {
+                                variant: "success",
+                                autoHideDuration: 5000,
+                                preventDuplicate: true
+                            })
+
+
                         dispatch({
                             type: ACCEPTED_REQUEST_NOTIFICATION,
                             payload: {acceptedRequests: friend, requestNotification: request_notification}
@@ -113,6 +129,13 @@ export const SideBar = () => {
                         if (!sidebarState.excludeSearchSuggestions.has(friend.friend_user_name)) {
                             tempSearchSuggestions.set(friend.friend_user_name, REQUESTED_TEXT)
                         }
+
+                        enqueueSnackbar(`[Friend Request Sent] Friend request sent to ${friend.friend_user_name}.`,
+                            {
+                                variant: "success",
+                                autoHideDuration: 5000,
+                                preventDuplicate: true
+                            })
 
                         dispatch({
                             type: PENDING_REQUEST_NOTIFICATION,
@@ -212,7 +235,7 @@ export const SideBar = () => {
         Cookies.set(ACTIVE_FRIEND_COOKIE, payload, {expires: 7})
 
         dispatch({
-            type: FRIEND_SELECTED,
+            type: ACTIVE_FRIEND_NAME,
             payload: payload
         })
     }
@@ -371,11 +394,11 @@ export const SideBar = () => {
         Cookies.remove(USER_AUTH_COOKIE)
         Cookies.remove(ACTIVE_FRIEND_COOKIE)
         dispatch({
-            type: ACTIVE_USERNAME,
+            type: ACTIVE_USER_CREDENTIALS,
             payload: null
         })
         dispatch({
-            type: FRIEND_SELECTED,
+            type: ACTIVE_FRIEND_NAME,
             payload: {
                 channel_id: 0,
                 friend_user_name: 'default'
