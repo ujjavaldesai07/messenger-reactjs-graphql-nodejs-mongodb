@@ -10,7 +10,7 @@ import {
     TITLE_TEXT_COLOR,
     USER_AUTH_COOKIE
 } from "../../constants/constants";
-import {useAuthTokenFromCookie} from "../../hooks/userAuthTokenFromCookie";
+import {useAuthTokenFromCookie} from "../../hooks/useAuthTokenFromCookie";
 import {useMutation} from "@apollo/client";
 import {ADD_USER_PROFILE} from "../../constants/graphql";
 import Typography from "@material-ui/core/Typography";

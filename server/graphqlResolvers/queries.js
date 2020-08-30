@@ -1,5 +1,5 @@
 import {Conversation, UserProfile} from "../model.js";
-import {friendSuggestionList} from "../constants.js";
+import {friendSuggestionMap} from "../constants.js";
 
 export const queries = {
     conversations: async (parent, {channel_id}) => {
@@ -84,7 +84,7 @@ export const queries = {
         // get friend's suggestions.
         try {
             if (prefix !== '') {
-                return friendSuggestionList.get(prefix.toLowerCase())
+                return friendSuggestionMap.get(prefix.toLowerCase())
             }
         } catch (e) {
             return null

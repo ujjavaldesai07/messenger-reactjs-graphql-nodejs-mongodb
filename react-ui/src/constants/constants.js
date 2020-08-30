@@ -9,7 +9,7 @@ export const PENDING_TEXT = "Pending"
 export const REQUESTED_TEXT = "Requested"
 export const SELF_TEXT = "You"
 export const ACCEPTED_TEXT = "Friend"
-export const SNACKBAR_AUTO_HIDE_DURATION = 10000
+export const SNACKBAR_AUTO_HIDE_DURATION = 7000
 
 // colors
 export const RECEIVER_CHAT_BUBBLE_BACKGROUND = "#3b4044"

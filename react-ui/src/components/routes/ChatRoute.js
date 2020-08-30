@@ -1,8 +1,8 @@
 import React from 'react';
-import {SideBar} from "../sections/Sidebar";
+import {SideBar} from "../sections/sidebar/Sidebar";
 import log from "loglevel";
 import {ChatWindow} from "../sections/ChatWindow";
-import {useAuthTokenFromCookie} from "../../hooks/userAuthTokenFromCookie";
+import {useAuthTokenFromCookie} from "../../hooks/useAuthTokenFromCookie";
 
 function ChatRoute() {
     log.info(`[ChatRoute] Rendering ChatRoute Component....`)

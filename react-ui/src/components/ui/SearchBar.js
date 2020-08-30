@@ -16,9 +16,10 @@ import {useMutation, useQuery} from "@apollo/client";
 import {GET_FRIEND_SUGGESTIONS, SEND_FRIEND_REQUEST} from "../../constants/graphql";
 import log from 'loglevel';
 import {useDispatch, useSelector} from "react-redux";
-import {PENDING_REQUEST_NOTIFICATION} from "../../actions/types";
+import {EXCLUDE_SEARCH_SUGGESTIONS, PENDING_REQUEST_NOTIFICATION} from "../../actions/types";
 import {useSidebarStyles} from "../../styles/sidebarStyles";
 import {
+    REQUESTED_TEXT,
     SENDER_CHAT_BUBBLE_BACKGROUND,
     SIDEBAR_PANEL_COLOR,
     TITLE_TEXT_COLOR
@@ -39,13 +40,13 @@ const useStyles = makeStyles((theme) => ({
 export default function SearchBar(props) {
     const classes = useStyles();
     const sidebarClasses = useSidebarStyles()
+    const excludeSearchSuggestions = useSelector(state => state.excludeSearchSuggestionsReducer)
 
-    const [value, setValue] = useState('')
-    const [findBtnState, setFindBtnState] = useState(false)
+    const [searchBarState, setSearchBarState] = useState({fieldValue: '', findBtnStatus: false})
 
     // trigger query on input change
     const {data, loading} = useQuery(GET_FRIEND_SUGGESTIONS,
-        {variables: {prefix: value}})
+        {variables: {prefix: searchBarState.fieldValue}})
     const {user_name: activeUsername} = useSelector(state => state.activeUsernameReducer)
     const [sendFriendRequest] = useMutation(SEND_FRIEND_REQUEST)
     const dispatch = useDispatch()
@@ -68,14 +69,14 @@ export default function SearchBar(props) {
                         <ListItemIcon><UserAvatar size="md" name={keyword}/></ListItemIcon>
                         <ListItemText primary={keyword} classes={{primary: sidebarClasses.primaryText}}/>
 
-                        {props.excludeSearchSuggestions.has(keyword) ?
-                            <Grid container xs={3}>
+                        {excludeSearchSuggestions.has(keyword) ?
+                            <Grid item container xs={3}>
                                 <Button variant="outlined" disabled color="primary" size="small" fullWidth
                                         style={{
                                             height: 30, fontSize: "0.7rem", color: TITLE_TEXT_COLOR,
                                             borderColor: TITLE_TEXT_COLOR
                                         }}>
-                                    {props.excludeSearchSuggestions.get(keyword)}
+                                    {excludeSearchSuggestions.get(keyword)}
                                 </Button>
                             </Grid> :
                             <Tooltip title="Send Request" arrow placement="right" id={keyword}
@@ -107,8 +108,9 @@ export default function SearchBar(props) {
                         style={{width: "inherit", paddingRight: 20}}
                         id="standard-basic"
                         placeholder="Search Friends Online"
-                        value={value}
-                        onChange={(e) => setValue(e.target.value)}
+                        value={searchBarState.fieldValue}
+                        onChange={
+                            (e) => setSearchBarState({...searchBarState, fieldValue: e.target.value})}
                         InputProps={{
                             style: {height: 40, fontSize: "1.3rem", color: TITLE_TEXT_COLOR},
                             startAdornment:
@@ -121,9 +123,10 @@ export default function SearchBar(props) {
                                                    }}/>
 
                                 </Tooltip>,
-                            endAdornment: <ClearIcon fontSize="small" onClick={() => setValue('')}
+                            endAdornment: <ClearIcon fontSize="small" onClick={
+                                () => setSearchBarState({...searchBarState, fieldValue: ''})}
                                                      style={{
-                                                         display: `${value.length > 0 ? "block" : "none"}`,
+                                                         display: `${searchBarState.fieldValue.length > 0 ? "block" : "none"}`,
                                                          cursor: "pointer"
                                                      }}/>
                         }}
@@ -170,24 +173,30 @@ export default function SearchBar(props) {
                         pendingRequests: friend
                     }
                 })
-                props.friendRequestAcceptHandler(friendUserName)
+
+                // On send request change the suggestion list, so that user
+                // dont send the request again.
+                dispatch({
+                    type: EXCLUDE_SEARCH_SUGGESTIONS,
+                    payload: new Map([[friendUserName, REQUESTED_TEXT]])
+                })
             }
         }).catch(e => log.error(`[SEND_FRIEND_REQUEST]: Unable to send friend request to graphql server e = ${e}`))
     }
 
     const handleFindBtnOpen = () => {
         props.changeFindBtnState(true)
-        setFindBtnState(true)
+        setSearchBarState({...searchBarState, findBtnStatus: true})
     }
 
     const handleFindBtnClose = () => {
         props.changeFindBtnState(false)
-        setFindBtnState(false)
+        setSearchBarState({...searchBarState, findBtnStatus: false, fieldValue: ''})
     }
 
     return (
         <>
-            {findBtnState ? renderSearchBarSection() : renderFindButton()}
+            {searchBarState.findBtnStatus ? renderSearchBarSection() : renderFindButton()}
         </>
     );
 }

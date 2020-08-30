@@ -1,6 +1,6 @@
 import {Conversation, UserProfile} from "../model.js";
 import {updateAcceptRequestQuery, updateSendRequestQuery} from "../modelOperations.js";
-import {pubsub, friendSuggestionList} from "../constants.js";
+import {pubsub, friendSuggestionMap} from "../constants.js";
 
 
 export const mutations = {
@@ -92,11 +92,11 @@ export const mutations = {
             if (createUserProfileResult) {
                 for (let index = 1; index <= user_name.length; index++) {
                     let prefix = user_name.slice(0, index).toLowerCase()
-                    if (!friendSuggestionList.has(prefix)) {
-                        friendSuggestionList.set(prefix, [user_name])
+                    if (!friendSuggestionMap.has(prefix)) {
+                        friendSuggestionMap.set(prefix, [user_name])
                         continue
                     }
-                    friendSuggestionList.get(prefix).push(user_name)
+                    friendSuggestionMap.get(prefix).push(user_name)
                 }
 
                 console.log(`[addUserProfile] UserProfile for ${user_name} is added successfully....`)

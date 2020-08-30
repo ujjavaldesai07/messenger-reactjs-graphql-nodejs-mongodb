@@ -5,7 +5,7 @@ import App from './components/App';
 import {Provider} from "react-redux";
 import log from "loglevel";
 import {ApolloProvider} from "@apollo/client";
-import {GraphQLClient, ReduxStore} from "./constants/config";
+import {GraphQLClient, ReduxStore} from "./config";
 import {SnackbarProvider} from "notistack";
 import ErrorBoundary from "./ErrorBoundary";
 
@@ -13,19 +13,18 @@ import ErrorBoundary from "./ErrorBoundary";
 log.setLevel("info")
 
 ReactDOM.render(
-        <Provider store={ReduxStore}>
-            <ApolloProvider client={GraphQLClient}>
-                <SnackbarProvider maxSnack={3}
-                                  anchorOrigin={{
-                                      vertical: 'bottom',
-                                      horizontal: 'right',
-                                  }}
-                >
-                    <ErrorBoundary>
+    <Provider store={ReduxStore}>
+        <ApolloProvider client={GraphQLClient}>
+            <SnackbarProvider maxSnack={3}
+                              anchorOrigin={{
+                                  vertical: 'bottom',
+                                  horizontal: 'right',
+                              }}>
+                <ErrorBoundary>
                     <App/>
-                    </ErrorBoundary>
-                </SnackbarProvider>
-            </ApolloProvider>
-        </Provider>,
+                </ErrorBoundary>
+            </SnackbarProvider>
+        </ApolloProvider>
+    </Provider>,
     document.getElementById('root')
 );

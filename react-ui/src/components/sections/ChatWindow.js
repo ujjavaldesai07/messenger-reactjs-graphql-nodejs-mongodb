@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {useMutation} from '@apollo/client';
 import {Grid} from "@material-ui/core";
 import backgroundImage from '../../images/background.jpg'
@@ -23,17 +23,19 @@ export function ChatWindow() {
     const sidebarPadding = sidebarDrawerStatus ? DRAWER_WIDTH + CHAT_WINDOW_PADDING : SIDEBAR_PADDING
     const {enqueueSnackbar} = useSnackbar();
 
-    if (!activeUsername) {
-        return null
-    }
+    useEffect(() => {
+        if (activeUsername) {
+            enqueueSnackbar("Welcome to messenger ! Start finding new friends online.",
+                {
+                    variant: "info",
+                    autoHideDuration: 5000,
+                    preventDuplicate: true
+                })
+        }
 
-    if (!friend_user_name) {
-        enqueueSnackbar("Welcome to messenger ! Start finding new friends online.",
-            {
-                variant: "info",
-                autoHideDuration: 5000,
-                preventDuplicate: true
-            })
+    }, [activeUsername, enqueueSnackbar])
+
+    if (!activeUsername || !friend_user_name) {
         return null
     }
 
