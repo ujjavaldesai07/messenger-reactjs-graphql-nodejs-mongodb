@@ -20,7 +20,12 @@ import {
     USER_AUTH_COOKIE,
     SELF_TEXT,
     PENDING_TEXT,
-    ACCEPTED_TEXT, REQUESTED_TEXT
+    ACCEPTED_TEXT,
+    REQUESTED_TEXT,
+    RECEIVER_CHAT_BUBBLE_BACKGROUND,
+    TITLE_TEXT_COLOR,
+    TOOLBAR_PANEL_COLOR,
+    SIDEBAR_PANEL_COLOR, LIST_BORDER_COLOR, SENDER_CHAT_BUBBLE_BACKGROUND, NOTIFICATION_COLOR
 } from "../../constants/constants";
 import {Badge, Button, Grid} from "@material-ui/core";
 import {UserAvatar} from "../ui/UserAvatar";
@@ -216,6 +221,9 @@ export const SideBar = () => {
         return (
             <ListItem button key={channel_id} id={channel_id} value={friend_user_name}
                       onClick={e => handleSidebarOptionBtn(e)}
+                      style={{height: 75}}
+                      classes={{divider: classes.dividerRoot}}
+                      divider
                       selected={selectedFriend.friend_user_name === friend_user_name}>
                 {newlyJoined ?
                     <Badge badgeContent="New" color="secondary"
@@ -230,34 +238,45 @@ export const SideBar = () => {
 
     const renderPendingFriendRequest = (channel_id, friend_user_name) => {
         return (
-            <ListItem key={channel_id} id={channel_id} value={friend_user_name}>
+            <ListItem key={channel_id} id={channel_id} value={friend_user_name} style={{height: 75}}>
                 <ListItemIcon><UserAvatar size="md" name={friend_user_name}/></ListItemIcon>
                 <ListItemText primary={friend_user_name} classes={{primary: classes.primaryText}}/>
-                <Button variant="outlined" disabled color="primary" size="small"
-                        style={{width: 50, height: 30, fontSize: "0.75rem"}}>
+                <Grid container xs={3}>
+                <Button variant="outlined" disabled size="small" fullWidth
+                        style={{height: 30, fontSize: "0.7rem", color: TITLE_TEXT_COLOR,
+                            borderColor: TITLE_TEXT_COLOR}}>
                     Pending
                 </Button>
+                </Grid>
             </ListItem>
         )
     }
 
     const renderNewFriendsRequest = (channel_id, friend_user_name) => {
         return (
-            <ListItem key={channel_id} id={channel_id} value={friend_user_name}>
+            <ListItem key={channel_id} id={channel_id} value={friend_user_name} style={{height: 75}}>
                 <ListItemIcon><UserAvatar size="md" name={friend_user_name}/></ListItemIcon>
                 <ListItemText primary={friend_user_name} classes={{primary: classes.primaryText}}/>
-                <Button variant="contained" color="primary" size="small" value={friend_user_name}
-                        onClick={acceptFriendRequestHandler}
-                        style={{width: 50, height: 30, fontSize: "0.75rem"}}>
-                    Accept
-                </Button>
+                <Grid container xs={3}>
+                    <Button variant="contained" size="small" value={friend_user_name} fullWidth
+                            onClick={acceptFriendRequestHandler}
+                            style={{
+                                height: 30, fontSize: "0.8rem", color: TITLE_TEXT_COLOR, fontWeight: 500,
+                                backgroundColor: SENDER_CHAT_BUBBLE_BACKGROUND
+                            }}>
+                        Accept
+                    </Button>
+                </Grid>
             </ListItem>
         )
     }
 
     const renderEmptyRequestComponent = (title) => {
         return (
-            <Grid key={title} container justify="center" style={{fontSize: "1rem", paddingTop: 20, fontWeight: 400}}>
+            <Grid key={title} container justify="center" style={{
+                fontSize: "1rem", paddingTop: 20, fontWeight: 400,
+                color: TITLE_TEXT_COLOR
+            }}>
                 {title}
             </Grid>
         )
@@ -319,7 +338,7 @@ export const SideBar = () => {
 
     const renderTitle = (title) => {
         return (
-            <Typography variant="h6" noWrap style={{paddingLeft: 30}}>
+            <Typography variant="h6" noWrap style={{paddingLeft: 30, color: TITLE_TEXT_COLOR, fontSize: "1.5rem"}}>
                 {title}
             </Typography>
         )
@@ -419,19 +438,19 @@ export const SideBar = () => {
                     [classes.appBarShift]: sidebarDrawerStatus,
                 })}
             >
-                <Toolbar>
+                <Toolbar style={{backgroundColor: TOOLBAR_PANEL_COLOR}}>
                     <IconButton
-                        color="inherit"
                         aria-label="open drawer"
                         onClick={handleDrawerOpen}
                         edge="start"
+                        style={{color: TITLE_TEXT_COLOR}}
                         className={clsx(classes.menuButton, {
                             [classes.hide]: sidebarDrawerStatus,
                         })}
                     >
                         <MenuIcon/>
                     </IconButton>
-                    <Typography variant="h6">
+                    <Typography variant="h6" style={{color: TITLE_TEXT_COLOR, fontSize: "1.5rem"}}>
                         Messenger
                     </Typography>
                     <Grid container justify="flex-end">
@@ -452,14 +471,14 @@ export const SideBar = () => {
                     }),
                 }}
             >
-                <Grid container style={{position: 'sticky', top: 0, zIndex: 1, backgroundColor: "white"}}>
+                <Grid container style={{position: 'sticky', top: 0, zIndex: 1, backgroundColor: TOOLBAR_PANEL_COLOR}}>
                     <Grid container alignItems="center">
                         <Grid item xs={10}>
                             {renderTitle(sidebarState.findBtnState ? "Find Friends" : "My Friends")}
                         </Grid>
                         <Grid item xs={2}>
                             <div className={classes.toolbar}>
-                                <IconButton onClick={handleDrawerClose}>
+                                <IconButton onClick={handleDrawerClose} style={{color: TITLE_TEXT_COLOR}}>
                                     {theme.direction === 'rtl' ? <ChevronRightIcon/> : <ChevronLeftIcon/>}
                                 </IconButton>
                             </div>
@@ -493,10 +512,13 @@ export const SideBar = () => {
                     </List>}
                 </Grid>
 
-                <Grid container style={{position: "absolute", bottom: 5, height: `fit-content`}}>
+                <Grid container style={{
+                    position: "absolute", bottom: 5, height: `fit-content`,
+                    backgroundColor: TOOLBAR_PANEL_COLOR, color: TITLE_TEXT_COLOR
+                }}>
                     <ListItem button onClick={handleLogout}>
-                        <ListItemIcon><ExitToAppIcon fontSize="large"/></ListItemIcon>
-                        <ListItemText primary="Logout"/>
+                        <ListItemIcon><ExitToAppIcon fontSize="large" style={{color: TITLE_TEXT_COLOR}}/></ListItemIcon>
+                        <ListItemText primary="Logout" classes={{primary: classes.titlePrimaryText}}/>
                     </ListItem>
                 </Grid>
             </Drawer>

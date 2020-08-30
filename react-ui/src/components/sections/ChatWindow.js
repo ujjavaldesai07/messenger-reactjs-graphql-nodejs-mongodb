@@ -43,10 +43,10 @@ export function ChatWindow() {
 
     log.info(`[ChatWindow] Rendering ChatWindow Component...`)
     return (
-        <Grid container style={{position: "absolute", bottom: TOP_BOTTOM_POSITION, height: `92%`}}>
+        <Grid container style={{position: "absolute", bottom: TOP_BOTTOM_POSITION, height: `93%`}}>
             <Grid container
                   style={{
-                      background: `linear-gradient( rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.6) ), url(${backgroundImage})`,
+                      background: `linear-gradient( rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8) ), url(${backgroundImage})`,
                       top: TOP_BOTTOM_POSITION,
                       bottom: TOP_BOTTOM_POSITION,
                       overflow: "auto",

@@ -5,6 +5,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background: #2A2F32!important;
 }
 
 code {
@@ -17,7 +18,11 @@ code {
 }
 
 .MuiListItem-root.Mui-selected, .MuiListItem-root.Mui-selected:hover {
-  background-color: #cacae8!important;
+  background-color: #323739!important;
+}
+
+.Mui-focused {
+  border-color: #F1F1F2EB!important;
 }
 
 /** {*/

@@ -18,6 +18,13 @@ import log from 'loglevel';
 import {useDispatch, useSelector} from "react-redux";
 import {PENDING_REQUEST_NOTIFICATION} from "../../actions/types";
 import {useSidebarStyles} from "../../styles/sidebarStyles";
+import {
+    NOTIFICATION_COLOR,
+    OPTION_BUTTON_COLOR,
+    SENDER_CHAT_BUBBLE_BACKGROUND,
+    SIDEBAR_PANEL_COLOR,
+    TITLE_TEXT_COLOR
+} from "../../constants/constants";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -54,14 +61,17 @@ export default function SearchBar(props) {
                         <ListItemIcon><UserAvatar size="md" name={keyword}/></ListItemIcon>
                         <ListItemText primary={keyword} classes={{primary: sidebarClasses.primaryText}}/>
                         {props.excludeSearchSuggestions.has(keyword) ?
-                            <Button variant="outlined" disabled color="primary" size="small"
-                                    style={{height: 30, fontSize: "0.5rem"}}>
+                            <Grid container xs={3}>
+                            <Button variant="outlined" disabled color="primary" size="small" fullWidth
+                                    style={{height: 30, fontSize: "0.7rem", color: TITLE_TEXT_COLOR,
+                                        borderColor: TITLE_TEXT_COLOR}}>
                                 {props.excludeSearchSuggestions.get(keyword)}
-                            </Button> :
+                            </Button>
+                            </Grid>:
                             <Tooltip title="Send Request" arrow placement="right" id={keyword}
                                      onClick={handleFriendRequestBtn}>
-                                <Fab color="primary" className={classes.fab} size="small">
-                                    <AddIcon fontSize="small"/>
+                                <Fab className={classes.fab} size="small" style={{backgroundColor: SENDER_CHAT_BUBBLE_BACKGROUND}}>
+                                    <AddIcon fontSize="small" style={{color: TITLE_TEXT_COLOR}}/>
                                 </Fab>
                             </Tooltip>
                         }
@@ -77,12 +87,13 @@ export default function SearchBar(props) {
             <>
                 <form className={classes.root} noValidate autoComplete="off" style={{height: 50, width: "inherit"}}>
                     <TextField
-                        style={{width: "fit-content"}}
+                        style={{width: "inherit", paddingRight: 20}}
                         id="standard-basic"
+                        placeholder="Search Friends Online"
                         value={value}
                         onChange={(e) => setValue(e.target.value)}
                         InputProps={{
-                            style: {height: 40, fontSize: "1.3rem"},
+                            style: {height: 40, fontSize: "1.3rem", color: TITLE_TEXT_COLOR},
                             startAdornment:
                                 <Tooltip title="Close" arrow placement="top">
                                     <ArrowBackIcon fontSize="small"
@@ -111,8 +122,9 @@ export default function SearchBar(props) {
 
     const renderFindButton = () => {
         return (
-            <Grid container justify="center" style={{padding: "1em 0"}}>
-                <Button variant="outlined" color="primary" onClick={handleFindBtnOpen}>
+            <Grid container justify="center" style={{padding: "1em 0", backgroundColor: SIDEBAR_PANEL_COLOR}}>
+                <Button variant="outlined" onClick={handleFindBtnOpen}
+                        style={{color: "black", backgroundColor: TITLE_TEXT_COLOR}}>
                     Find Friends Online
                 </Button>
             </Grid>

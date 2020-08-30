@@ -35,7 +35,7 @@ type Conversation {
 }
 
 type UserName {
-    user_id: ID!,
+    user_id: ID!
     user_name: String!
 }
 
@@ -48,12 +48,18 @@ type Query {
     conversations(channel_id: ID!): [Conversation]
 }
 
+type VerificationStatus {
+    failure: Boolean!
+    error_msg: String
+}
+
 type Mutation {
     addUserProfile(user_name: String!): UserProfile
     sendFriendRequest(user_name: String!, friend_user_name: String!): AppNotifications
     resetNotification(user_name: String!, notification_name: String!): AppNotifications
     acceptFriendRequest(user_name: String!, friend_user_name: String!): AppNotifications
     postConversation(channel_id: ID!, message: String!, user_name: String!): Conversation
+    verifyAuthentication(user_name: ID!, password: String, token: String): VerificationStatus
 }
 
 type Subscription {

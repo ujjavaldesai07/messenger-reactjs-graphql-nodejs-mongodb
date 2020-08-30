@@ -2,6 +2,11 @@ import React from 'react';
 import {Button, Grid, TextField} from "@material-ui/core";
 import log from "loglevel";
 import {makeStyles} from "@material-ui/core/styles";
+import {
+    MESSAGE_SECTION_COLOR,
+    TITLE_TEXT_COLOR,
+    TOOLBAR_PANEL_COLOR
+} from "../../constants/constants";
 
 const useStyles = makeStyles(() => ({
     input: {
@@ -32,7 +37,7 @@ export function MessageBox(props) {
     return (
         <Grid container justify="center" alignItems="center" style={{
             position: "fixed", bottom: 0, paddingLeft: props.sidebarPadding,
-            backgroundColor: "#dddbd1", height: 60
+            backgroundColor: MESSAGE_SECTION_COLOR, height: 60
         }}>
             <Grid item xs={8} style={{height: 40}}>
                 <TextField
@@ -43,6 +48,7 @@ export function MessageBox(props) {
                     placeholder="Type a message"
                     style={{width: "98%"}}
                     InputProps={{
+                        style:{backgroundColor: TOOLBAR_PANEL_COLOR, color: TITLE_TEXT_COLOR},
                         className: classes.input,
                     }}
                     onKeyUp={event => {
@@ -52,9 +58,9 @@ export function MessageBox(props) {
                     }}
                 />
             </Grid>
-            <Grid item xs={1}>
-                <Button variant={"contained"} color="primary"
-                        fullWidth style={{height: 40}}
+            <Grid item>
+                <Button variant={"contained"}
+                        fullWidth style={{height: 40, width: 100, backgroundColor: TITLE_TEXT_COLOR}}
                         onClick={handleSendButton}
                 >
                     Send

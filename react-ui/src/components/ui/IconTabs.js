@@ -7,17 +7,27 @@ import FavoriteIcon from '@material-ui/icons/Favorite';
 import PersonPinIcon from '@material-ui/icons/PersonPin';
 import ChatIcon from '@material-ui/icons/Chat';
 import log from 'loglevel';
+import {DRAWER_WIDTH, NOTIFICATION_COLOR, SIDEBAR_PANEL_COLOR, TITLE_TEXT_COLOR} from "../../constants/constants";
 
 const useStyles = makeStyles({
     root: {
         flexGrow: 1,
-        width: "inherit"
+        width: "inherit",
+        backgroundColor: SIDEBAR_PANEL_COLOR
     },
     tabsFlexContainer: {
-        width: "inherit"
+        width: "inherit",
+        color: TITLE_TEXT_COLOR
+    },
+    tabIndicator: {
+        backgroundColor: TITLE_TEXT_COLOR
     },
     tabRoot: {
-        minWidth: 83
+        minWidth: `calc(${DRAWER_WIDTH/3}px)`
+    },
+    badge: {
+        backgroundColor: NOTIFICATION_COLOR,
+        color: "black"
     }
 });
 
@@ -33,7 +43,7 @@ export default function IconTabs({tabIconStateHandler, requestNotification, side
 
     const renderIconWithBadge = (icon, content) => {
         return (
-            <Badge badgeContent={content} color="secondary">
+            <Badge badgeContent={content} classes={{badge: classes.badge}}>
                 {icon}
             </Badge>
         )
@@ -46,10 +56,8 @@ export default function IconTabs({tabIconStateHandler, requestNotification, side
             <Tabs
                 value={tabValue}
                 onChange={handleChange}
-                indicatorColor="secondary"
-                textColor="secondary"
                 aria-label="icon label tabs example"
-                classes={{flexContainer: classes.tabsFlexContainer}}>
+                classes={{flexContainer: classes.tabsFlexContainer, indicator: classes.tabIndicator}}>
                 <Tab icon={<ChatIcon/>} classes={{root: classes.tabRoot}}/>
 
                 <Tab icon={renderIconWithBadge(<FavoriteIcon />,

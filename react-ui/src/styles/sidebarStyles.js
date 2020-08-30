@@ -1,5 +1,10 @@
 import {makeStyles} from "@material-ui/core/styles";
-import {DRAWER_WIDTH} from "../constants/constants";
+import {
+    DRAWER_WIDTH, LIST_BORDER_COLOR,
+    RECEIVER_CHAT_BUBBLE_BACKGROUND, SIDEBAR_PANEL_COLOR,
+    TITLE_TEXT_COLOR,
+    TOOLBAR_PANEL_COLOR
+} from "../constants/constants";
 
 export const useSidebarStyles = makeStyles((theme) => ({
     root: {
@@ -33,12 +38,14 @@ export const useSidebarStyles = makeStyles((theme) => ({
     },
     drawerOpen: {
         width: DRAWER_WIDTH,
+        backgroundColor: SIDEBAR_PANEL_COLOR,
         transition: theme.transitions.create('width', {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.enteringScreen,
         }),
     },
     drawerClose: {
+        backgroundColor: SIDEBAR_PANEL_COLOR,
         transition: theme.transitions.create('width', {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
@@ -61,9 +68,18 @@ export const useSidebarStyles = makeStyles((theme) => ({
         flexShrink: 1,
     },
     primaryText: {
-        width: 80,
+        paddingLeft: 10,
+        fontSize: "1.2rem",
+        color: "white",
+        width: 140,
         overflow: "hidden",
         whiteSpace: "nowrap",
         textOverflow: "ellipsis"
+    },
+    titlePrimaryText: {
+        fontSize: "1.3rem",
+    },
+    dividerRoot: {
+        borderColor: LIST_BORDER_COLOR
     }
 }));
