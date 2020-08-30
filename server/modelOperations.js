@@ -12,7 +12,10 @@ import {UserProfile} from "./model.js";
 export const updateSendRequestQuery = async (user_name, friend_user_name,
                                              channel_id, requestStatus, requestPropertyType) => {
 
+    // create field path based on property name
     const requestTypePath = `request_notification.${requestPropertyType}`
+
+    // find One and update the status
     const updateRequestStatus = await UserProfile.findOneAndUpdate(
         {
             user_name: user_name,
@@ -34,6 +37,7 @@ export const updateSendRequestQuery = async (user_name, friend_user_name,
 
     console.log(`updateRequestStatus = ${JSON.stringify(updateRequestStatus)}`)
 
+    // if success then return the object
     if (updateRequestStatus) {
         return updateRequestStatus
     }
@@ -52,7 +56,8 @@ export const updateAcceptRequestQuery = async (user_name, friend_user_name, requ
 
     const requestTypePath = `request_notification.${requestPropertyType}`
 
-    // decrement the request once we changed the status.
+    // decrement the request first so that we can get the correct
+    // notification number.
     await UserProfile.updateOne(
         {
             user_name: user_name,
@@ -64,6 +69,7 @@ export const updateAcceptRequestQuery = async (user_name, friend_user_name, requ
             }
         })
 
+    // now update the status
     const updateAcceptRequestResult = await UserProfile.findOneAndUpdate(
         {
             user_name: user_name,

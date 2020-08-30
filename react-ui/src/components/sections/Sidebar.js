@@ -24,7 +24,7 @@ import {
     REQUESTED_TEXT,
     SENDER_CHAT_BUBBLE_BACKGROUND,
     TITLE_TEXT_COLOR,
-    TOOLBAR_PANEL_COLOR
+    TOOLBAR_PANEL_COLOR, SNACKBAR_AUTO_HIDE_DURATION
 } from "../../constants/constants";
 import {Badge, Button, Grid} from "@material-ui/core";
 import {UserAvatar} from "../ui/UserAvatar";
@@ -56,8 +56,6 @@ import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import history from "../../history";
 import {useSnackbar} from "notistack";
 
-export const SNACKBAR_AUTO_HIDE_DURATION = 10000
-
 export const SideBar = () => {
     const classes = useSidebarStyles();
     const theme = useTheme();
@@ -68,6 +66,7 @@ export const SideBar = () => {
     const selectedFriend = useSelector(state => state.friendSelectionReducer)
     const {enqueueSnackbar} = useSnackbar();
 
+    // initial sidebar states
     const [sidebarState, setSidebarState] = useState({
         tabValue: 0,
         findBtnState: false,
@@ -87,21 +86,40 @@ export const SideBar = () => {
     // reset notification if we have seen it.
     const [resetNotification] = useMutation(RESET_NOTIFICATION)
 
-    log.info(`[SideBar] subscribedData = ${JSON.stringify(subscribedData)}`)
-    log.info(`[SideBar] queriedUserProfile = ${JSON.stringify(queriedUserProfile)}`)
-
+    /**
+     * Update redux store, snackbars and search suggestions with new subscribed data
+     * received from user_name channel
+     */
     useEffect(() => {
+        log.info(`[SideBar] Component did mount hook for subscribedData dependency`)
         log.info(`[SideBar] subscribedData = ${JSON.stringify(subscribedData)}, notificationLoading = ${subscribedDataLoading}`)
+
+        // check if data is received and is not null
+        // initially we will get null data because the subscription triggers
+        // after we subscribe the data.
         if (!subscribedDataLoading && subscribedData && subscribedData.app_notifications) {
+
             if (subscribedData.app_notifications.friend) {
+
+                // store temp search suggestions in map
+                // so that we dont want to give option to user to send
+                // friend request who is already friend.
                 let tempSearchSuggestions = new Map()
+
+                // destructure subscribe data
                 let {friend, request_notification} = subscribedData.app_notifications
+
+                // check only the first character of status as all the statuses
+                // are unique.
                 switch (friend.request_status && friend.request_status.charAt(0)) {
                     case 'n':
+
+                        // if user_name not added then add it.
                         if (!sidebarState.excludeSearchSuggestions.has(friend.friend_user_name)) {
                             tempSearchSuggestions.set(friend.friend_user_name, PENDING_TEXT)
                         }
 
+                        // update the snackbar notification
                         enqueueSnackbar(`[New Request Notification] Received from ${friend.friend_user_name}.`,
                             {
                                 variant: "info",
@@ -109,6 +127,8 @@ export const SideBar = () => {
                                 preventDuplicate: true
                             })
 
+                        // dispatch new request notification and later render it with new data
+                        // in right tab.
                         dispatch({
                             type: NEW_REQUEST_NOTIFICATION,
                             payload: {newRequests: friend, requestNotification: request_notification}
@@ -154,6 +174,10 @@ export const SideBar = () => {
                 }
 
                 if (tempSearchSuggestions.size > 0) {
+
+                    // append the state of maps
+                    // we dont want to update new map
+                    // otherwise we will loose previous state
                     setSidebarState({
                         ...sidebarState,
                         excludeSearchSuggestions: new Map([...sidebarState.excludeSearchSuggestions]
@@ -162,6 +186,9 @@ export const SideBar = () => {
                 }
 
             } else if (subscribedData.app_notifications.request_notification) {
+
+                // if publisher only sends request_notification then we will land here.
+                // for eg we will land here during resetting the notification.
                 dispatch({
                     type: REQUEST_NOTIFICATION,
                     payload: {requestNotification: subscribedData.app_notifications.request_notification}
@@ -169,10 +196,18 @@ export const SideBar = () => {
             }
         }
 
+        // we want to update only when subscribedData changes
         // eslint-disable-next-line
     }, [subscribedData])
 
+    /**
+     * Update search suggestions with new queriedUserProfile data
+     * received from user_name channel
+     */
     useEffect(() => {
+        log.info(`[SideBar] Component did mount hook for queriedUserProfile dependency`)
+        log.info(`[SideBar] queriedUserProfile = ${JSON.stringify(queriedUserProfile)}`)
+
         if (!queriedUserProfileLoading && queriedUserProfile && queriedUserProfile.userProfile) {
             let tempSearchSuggestions = new Map()
             if (!sidebarState.excludeSearchSuggestions.has(activeUsername)) {
@@ -203,6 +238,10 @@ export const SideBar = () => {
                 })
             }
 
+            // dispatch notification to redux store
+            // so that we dont have to maintain notification
+            // from queriedUserProfile and subscribed data.
+            // its better to store data in redux store.
             dispatch({
                 type: REQUEST_NOTIFICATION,
                 payload: {requestNotification: queriedUserProfile.userProfile.request_notification}
@@ -212,6 +251,11 @@ export const SideBar = () => {
         // eslint-disable-next-line
     }, [queriedUserProfile])
 
+    /**
+     * On send request change the suggestion list, so that user
+     * dont send the request again.
+     * @param user_name
+     */
     const friendRequestAcceptHandler = (user_name) => {
         setSidebarState({
             ...sidebarState,
@@ -220,6 +264,9 @@ export const SideBar = () => {
         })
     }
 
+    /**
+     * store the drawer status in redux
+     */
     const handleDrawerOpen = () => {
         dispatch({
             type: SIDEBAR_DRAWER_OPEN
@@ -230,9 +277,16 @@ export const SideBar = () => {
         dispatch({
             type: SIDEBAR_DRAWER_CLOSED
         })
+
+        // on drawer close reset the tab to accepted friends.
         setSidebarState({...sidebarState, findBtnState: false, tabValue: 0})
     };
 
+    /**
+     * On Friend selected to chat set the cookie
+     * so that we dont loose him when page is refreshed.
+     * @param e
+     */
     const handleSidebarOptionBtn = (e) => {
         const payload = {
             channel_id: e.currentTarget.id,
@@ -247,6 +301,14 @@ export const SideBar = () => {
         })
     }
 
+    /**
+     * render style based on accepted friends tab
+     *
+     * @param channel_id
+     * @param friend_user_name
+     * @param newlyJoined
+     * @returns {JSX.Element}
+     */
     const renderAcceptedFriend = (channel_id, friend_user_name, newlyJoined) => {
         return (
             <ListItem button key={channel_id} id={channel_id} value={friend_user_name}
@@ -319,6 +381,13 @@ export const SideBar = () => {
         )
     }
 
+    /**
+     * Add friend based on selected tab.
+     *
+     * @param friends
+     * @param friendComponentList
+     * @param newlyJoined
+     */
     const addFriendBasedOnRequestStatus = (friends, friendComponentList, newlyJoined) => {
         if (friends.length === 0) {
             return
@@ -353,14 +422,17 @@ export const SideBar = () => {
 
         let friendComponentList = []
 
+        // render friends from new notification data from subscription
         addFriendBasedOnRequestStatus(notificationReducer.acceptedRequests, friendComponentList, "new")
         addFriendBasedOnRequestStatus(notificationReducer.newRequests, friendComponentList)
         addFriendBasedOnRequestStatus(notificationReducer.pendingRequests, friendComponentList)
 
+        // render friends from the query and this will be rendered only for the first time.
         if (!queriedUserProfileLoading && queriedUserProfile && queriedUserProfile.userProfile) {
             addFriendBasedOnRequestStatus(queriedUserProfile.userProfile.friends, friendComponentList)
         }
 
+        // if no components
         if (friendComponentList.length === 0) {
             if (sidebarState.tabValue === 0 && sidebarDrawerStatus) {
                 friendComponentList.push(renderEmptyRequestComponent('No Friends'))
@@ -385,6 +457,11 @@ export const SideBar = () => {
         setSidebarState({...sidebarState, findBtnState: value})
     }
 
+    /**
+     * set tab value and reset notification which marks that
+     * user have seen the notifications.
+     * @param value
+     */
     const tabIconStateHandler = (value) => {
         switch (value) {
             case 1:
@@ -404,6 +481,9 @@ export const SideBar = () => {
         setSidebarState({...sidebarState, tabValue: value})
     }
 
+    /**
+     * On logout remove all the cookies and cleanup all redux states.
+     */
     const handleLogout = () => {
         Cookies.remove(USER_AUTH_COOKIE)
         Cookies.remove(ACTIVE_FRIEND_COOKIE)
@@ -424,6 +504,10 @@ export const SideBar = () => {
         history.push("/login")
     }
 
+    /**
+     * Reset notification based on notification name
+     * @param notification_name
+     */
     const resetNotificationRequest = (notification_name) => {
         log.info(`[resetNotificationRequest] activeUsername = ${activeUsername}, notification_name = ${notification_name}`)
         resetNotification({

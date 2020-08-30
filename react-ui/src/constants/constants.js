@@ -1,3 +1,4 @@
+// hardcoded css styles
 export const SIDEBAR_PADDING = 82
 export const CHAT_WINDOW_PADDING = 14
 export const DRAWER_WIDTH = 350
@@ -8,6 +9,9 @@ export const PENDING_TEXT = "Pending"
 export const REQUESTED_TEXT = "Requested"
 export const SELF_TEXT = "You"
 export const ACCEPTED_TEXT = "Friend"
+export const SNACKBAR_AUTO_HIDE_DURATION = 10000
+
+// colors
 export const RECEIVER_CHAT_BUBBLE_BACKGROUND = "#3b4044"
 export const SENDER_CHAT_BUBBLE_BACKGROUND = "#054740"
 export const TITLE_TEXT_COLOR = "#F1F1F2EB"
@@ -18,6 +22,7 @@ export const MESSAGE_SECTION_COLOR = "#1E2428"
 export const NOTIFICATION_COLOR= "#09d261"
 export const CARD_COLOR= "#3B4042"
 
+// redux initial states
 export const INITIAL_NOTIFICATION_STATE = {
     newRequests: [],
     acceptedRequests: [],

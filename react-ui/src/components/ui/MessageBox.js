@@ -48,7 +48,7 @@ export function MessageBox(props) {
                     placeholder="Type a message"
                     style={{width: "98%"}}
                     InputProps={{
-                        style:{backgroundColor: TOOLBAR_PANEL_COLOR, color: TITLE_TEXT_COLOR},
+                        style: {backgroundColor: TOOLBAR_PANEL_COLOR, color: TITLE_TEXT_COLOR},
                         className: classes.input,
                     }}
                     onKeyUp={event => {
@@ -61,8 +61,7 @@ export function MessageBox(props) {
             <Grid item>
                 <Button variant={"contained"}
                         fullWidth style={{height: 40, width: 100, backgroundColor: TITLE_TEXT_COLOR}}
-                        onClick={handleSendButton}
-                >
+                        onClick={handleSendButton}>
                     Send
                 </Button>
             </Grid>

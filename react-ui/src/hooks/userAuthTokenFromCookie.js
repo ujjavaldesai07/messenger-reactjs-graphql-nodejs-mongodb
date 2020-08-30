@@ -6,6 +6,12 @@ import {ACTIVE_USER_CREDENTIALS, ACTIVE_FRIEND_NAME} from "../actions/types";
 import history from "../history";
 import {useDispatch} from "react-redux";
 
+/**
+ * Custom hook to retrieve credentials from cookie.
+ *
+ * @param activeUsername
+ * @param activeFriendName
+ */
 export function useAuthTokenFromCookie(activeUsername, activeFriendName) {
     const dispatch = useDispatch()
 

@@ -1,9 +1,7 @@
 import {makeStyles} from "@material-ui/core/styles";
 import {
     DRAWER_WIDTH, LIST_BORDER_COLOR,
-    RECEIVER_CHAT_BUBBLE_BACKGROUND, SIDEBAR_PANEL_COLOR,
-    TITLE_TEXT_COLOR,
-    TOOLBAR_PANEL_COLOR
+    SIDEBAR_PANEL_COLOR
 } from "../constants/constants";
 
 export const useSidebarStyles = makeStyles((theme) => ({

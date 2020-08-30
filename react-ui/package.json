@@ -22,9 +22,8 @@
     "react-scripts": "3.4.3",
     "react-scroll": "^1.8.1",
     "redux": "^4.0.5",
-    "redux-form": "^8.3.6",
-    "redux-thunk": "^2.3.0",
-    "subscriptions-transport-ws": "^0.9.18"
+    "subscriptions-transport-ws": "^0.9.18",
+    "clsx": "^1.1.1"
   },
   "scripts": {
     "start": "react-scripts start",

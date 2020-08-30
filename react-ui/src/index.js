@@ -7,22 +7,25 @@ import log from "loglevel";
 import {ApolloProvider} from "@apollo/client";
 import {GraphQLClient, ReduxStore} from "./constants/config";
 import {SnackbarProvider} from "notistack";
+import ErrorBoundary from "./ErrorBoundary";
 
 // log.disableAll(true)
 log.setLevel("info")
 
 ReactDOM.render(
-    <Provider store={ReduxStore}>
-        <ApolloProvider client={GraphQLClient}>
-            <SnackbarProvider maxSnack={3}
-                              anchorOrigin={{
-                                  vertical: 'bottom',
-                                  horizontal: 'right',
-                              }}
-            >
-                <App/>
-            </SnackbarProvider>
-        </ApolloProvider>
-    </Provider>,
+        <Provider store={ReduxStore}>
+            <ApolloProvider client={GraphQLClient}>
+                <SnackbarProvider maxSnack={3}
+                                  anchorOrigin={{
+                                      vertical: 'bottom',
+                                      horizontal: 'right',
+                                  }}
+                >
+                    <ErrorBoundary>
+                    <App/>
+                    </ErrorBoundary>
+                </SnackbarProvider>
+            </ApolloProvider>
+        </Provider>,
     document.getElementById('root')
 );

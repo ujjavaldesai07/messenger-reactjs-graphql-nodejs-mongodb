@@ -10,6 +10,8 @@ import {animateScroll as scroll} from 'react-scroll'
 
 export function Conversation({activeFriendName, channel_id}) {
     const {user_name: activeUsername} = useSelector(state => state.activeUsernameReducer)
+
+    // subscribe channel id to chat with user.
     const {data, loading} = useSubscription(GET_CONVERSATION, {
         variables: {channel_id: channel_id, user_name: activeUsername}
     })
@@ -22,12 +24,15 @@ export function Conversation({activeFriendName, channel_id}) {
             return null
         }
 
+        // works only in chrome
+        // scroll to latest message.
         scroll.scrollToBottom();
 
+        // need count to add keys in react components.
         let count = 0
         return data.conversations.map(({user_name, message}) => {
             ++count
-            // log.info(`activeUsername = ${activeUsername}, user_name = ${user_name}, activeFriendName = ${activeFriendName}`)
+            // send message to correct direction based on the username.
             if (activeUsername.localeCompare(user_name) === 0) {
                 return (
                     <Grid key={count} container style={{paddingBottom: 10}}>

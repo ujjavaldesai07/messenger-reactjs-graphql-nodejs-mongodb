@@ -4,7 +4,6 @@ import {
     ACCEPTED_REQUEST_NOTIFICATION,
     PENDING_REQUEST_NOTIFICATION, REMOVE_NOTIFICATION, REQUEST_NOTIFICATION
 } from "../actions/types";
-import log from 'loglevel'
 
 export const notificationReducer = (state
                                         = INITIAL_NOTIFICATION_STATE, action) => {

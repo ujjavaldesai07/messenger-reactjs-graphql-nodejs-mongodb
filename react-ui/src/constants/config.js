@@ -3,7 +3,6 @@ import {ApolloClient, InMemoryCache} from "@apollo/client";
 import {WebSocketLink} from "@apollo/client/link/ws";
 import {applyMiddleware, compose, createStore} from "redux";
 import reducers from "../reducers";
-import thunk from "redux-thunk";
 
 const subscriptionClient = new SubscriptionClient("ws://localhost:4000/", {
     reconnect: true
@@ -18,5 +17,5 @@ export const GraphQLClient = new ApolloClient({
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose();
 export const ReduxStore = createStore(
     reducers,
-    composeEnhancers(applyMiddleware(thunk))
+    composeEnhancers(applyMiddleware())
 );

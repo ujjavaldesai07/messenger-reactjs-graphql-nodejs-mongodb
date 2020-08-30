@@ -24,6 +24,8 @@ export function LoginRoute() {
     const dispatch = useDispatch()
     const [addUserProfile, {loading, error}] = useMutation(ADD_USER_PROFILE)
 
+    // custom hook check whether user has previously logged in
+    // and if yes then retrieved details from cookie.
     useAuthTokenFromCookie(null)
 
     const handleUsernameChange = (e) => {
@@ -37,16 +39,19 @@ export function LoginRoute() {
     const handleLoginButton = () => {
         log.info(`[LoginRoute] handleLoginButton clicked`)
 
+        // convert password to md5 and send it to server
         let credentials = {
             user_name: loginState.user_name,
             password: md5(loginState.password)
         }
 
+        // create new user profile or verify credentials if the user profile already present.
         addUserProfile({
             variables: credentials
         }).then(res => {
             if (res.data) {
                 if (res.data.addUserProfile && !res.data.addUserProfile.failure) {
+                    // on success
                     Cookies.set(USER_AUTH_COOKIE, credentials, {expires: 7})
                     dispatch({
                         type: ACTIVE_USER_CREDENTIALS,
@@ -59,6 +64,7 @@ export function LoginRoute() {
 
                     history.push("/")
                 } else {
+                    // on failure
                     setLoginState({...loginState, error: res.data.addUserProfile.error_msg})
                 }
             }

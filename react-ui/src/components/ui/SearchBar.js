@@ -42,37 +42,51 @@ export default function SearchBar(props) {
 
     const [value, setValue] = useState('')
     const [findBtnState, setFindBtnState] = useState(false)
+
+    // trigger query on input change
     const {data, loading} = useQuery(GET_FRIEND_SUGGESTIONS,
         {variables: {prefix: value}})
     const {user_name: activeUsername} = useSelector(state => state.activeUsernameReducer)
     const [sendFriendRequest] = useMutation(SEND_FRIEND_REQUEST)
     const dispatch = useDispatch()
 
+    /**
+     * get suggestions from server and excluse friend request option
+     * from the existing friends and requested friends
+     * @returns {[]}
+     */
     const renderFriends = () => {
         let suggestionComponentList = []
         log.info(`[SearchBar] data = ${JSON.stringify(data)}`)
+
+        // if we got the data from server
         if (!loading && data.friendSuggestions) {
             data.friendSuggestions.forEach(keyword => {
-                log.info(`keyword = ${keyword}`)
+
                 suggestionComponentList.push(
                     <ListItem key={keyword} id={keyword}>
                         <ListItemIcon><UserAvatar size="md" name={keyword}/></ListItemIcon>
                         <ListItemText primary={keyword} classes={{primary: sidebarClasses.primaryText}}/>
+
                         {props.excludeSearchSuggestions.has(keyword) ?
                             <Grid container xs={3}>
-                            <Button variant="outlined" disabled color="primary" size="small" fullWidth
-                                    style={{height: 30, fontSize: "0.7rem", color: TITLE_TEXT_COLOR,
-                                        borderColor: TITLE_TEXT_COLOR}}>
-                                {props.excludeSearchSuggestions.get(keyword)}
-                            </Button>
-                            </Grid>:
+                                <Button variant="outlined" disabled color="primary" size="small" fullWidth
+                                        style={{
+                                            height: 30, fontSize: "0.7rem", color: TITLE_TEXT_COLOR,
+                                            borderColor: TITLE_TEXT_COLOR
+                                        }}>
+                                    {props.excludeSearchSuggestions.get(keyword)}
+                                </Button>
+                            </Grid> :
                             <Tooltip title="Send Request" arrow placement="right" id={keyword}
                                      onClick={handleFriendRequestBtn}>
-                                <Fab className={classes.fab} size="small" style={{backgroundColor: SENDER_CHAT_BUBBLE_BACKGROUND}}>
+                                <Fab className={classes.fab} size="small"
+                                     style={{backgroundColor: SENDER_CHAT_BUBBLE_BACKGROUND}}>
                                     <AddIcon fontSize="small" style={{color: TITLE_TEXT_COLOR}}/>
                                 </Fab>
                             </Tooltip>
                         }
+
                     </ListItem>
                 )
             })
@@ -80,6 +94,11 @@ export default function SearchBar(props) {
         return suggestionComponentList
     }
 
+    /**
+     * Show the friend list based on keyword.
+     *
+     * @returns {JSX.Element}
+     */
     const renderSearchBarSection = () => {
         return (
             <>
@@ -129,6 +148,10 @@ export default function SearchBar(props) {
         )
     }
 
+    /**
+     * send friend request.
+     * @param e
+     */
     const handleFriendRequestBtn = (e) => {
         let friendUserName = e.currentTarget.getAttribute("aria-describedby")
         log.info(`friendUserName = ${friendUserName}`)
