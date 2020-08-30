@@ -1,7 +1,7 @@
 import pkg from "graphql-yoga"
 const {GraphQLServer} = pkg;
 import mongoose from "mongoose"
-import {typeDefs} from "./typeDefs.js"
+import {typeDefs} from "./graphqlResolvers/typeDefs.js"
 import {resolvers} from "./graphqlResolvers/resolvers.js"
 import {pubsub} from "./constants.js";
 

@@ -31,8 +31,13 @@ import {UserAvatar} from "../ui/UserAvatar";
 import log from "loglevel";
 import {useDispatch, useSelector} from "react-redux";
 import {
-    ACCEPTED_REQUEST_NOTIFICATION, ACTIVE_USER_CREDENTIALS,
-    ACTIVE_FRIEND_NAME, NEW_REQUEST_NOTIFICATION, PENDING_REQUEST_NOTIFICATION, REMOVE_NOTIFICATION, REQUEST_NOTIFICATION,
+    ACCEPTED_REQUEST_NOTIFICATION,
+    ACTIVE_USER_CREDENTIALS,
+    ACTIVE_FRIEND_NAME,
+    NEW_REQUEST_NOTIFICATION,
+    PENDING_REQUEST_NOTIFICATION,
+    REMOVE_NOTIFICATION,
+    REQUEST_NOTIFICATION,
     SIDEBAR_DRAWER_CLOSED,
     SIDEBAR_DRAWER_OPEN
 } from "../../actions/types";
@@ -50,6 +55,8 @@ import IconTabs from "../ui/IconTabs";
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import history from "../../history";
 import {useSnackbar} from "notistack";
+
+export const SNACKBAR_AUTO_HIDE_DURATION = 10000
 
 export const SideBar = () => {
     const classes = useSidebarStyles();
@@ -98,7 +105,7 @@ export const SideBar = () => {
                         enqueueSnackbar(`[New Request Notification] Received from ${friend.friend_user_name}.`,
                             {
                                 variant: "info",
-                                autoHideDuration: 5000,
+                                autoHideDuration: SNACKBAR_AUTO_HIDE_DURATION,
                                 preventDuplicate: true
                             })
 
@@ -115,7 +122,7 @@ export const SideBar = () => {
                         enqueueSnackbar(`[Request Accepted] You and ${friend.friend_user_name} are now friends.`,
                             {
                                 variant: "success",
-                                autoHideDuration: 5000,
+                                autoHideDuration: SNACKBAR_AUTO_HIDE_DURATION,
                                 preventDuplicate: true
                             })
 
@@ -133,7 +140,7 @@ export const SideBar = () => {
                         enqueueSnackbar(`[Friend Request Sent] Friend request sent to ${friend.friend_user_name}.`,
                             {
                                 variant: "success",
-                                autoHideDuration: 5000,
+                                autoHideDuration: SNACKBAR_AUTO_HIDE_DURATION,
                                 preventDuplicate: true
                             })
 
@@ -223,7 +230,7 @@ export const SideBar = () => {
         dispatch({
             type: SIDEBAR_DRAWER_CLOSED
         })
-        setSidebarState({...sidebarState, findBtnState: false})
+        setSidebarState({...sidebarState, findBtnState: false, tabValue: 0})
     };
 
     const handleSidebarOptionBtn = (e) => {
@@ -244,17 +251,20 @@ export const SideBar = () => {
         return (
             <ListItem button key={channel_id} id={channel_id} value={friend_user_name}
                       onClick={e => handleSidebarOptionBtn(e)}
-                      style={{height: 75}}
+                      style={{height: 75, justifyContent: "center"}}
                       classes={{divider: classes.dividerRoot}}
                       divider
                       selected={selectedFriend.friend_user_name === friend_user_name}>
                 {newlyJoined ?
                     <Badge badgeContent="New" color="secondary"
                            anchorOrigin={{vertical: 'top', horizontal: 'left'}}>
-                        <ListItemIcon><UserAvatar size="md" name={friend_user_name}/></ListItemIcon>
+                        <ListItemIcon style={{justifyContent: "center"}}>
+                            <UserAvatar size="md" name={friend_user_name}/></ListItemIcon>
                     </Badge>
-                    : <ListItemIcon><UserAvatar size="md" name={friend_user_name}/></ListItemIcon>}
-                <ListItemText primary={friend_user_name} classes={{primary: classes.primaryText}}/>
+                    : <ListItemIcon style={{justifyContent: "center"}}>
+                        <UserAvatar size="md" name={friend_user_name}/></ListItemIcon>}
+                {sidebarDrawerStatus ?
+                    <ListItemText primary={friend_user_name} classes={{primary: classes.primaryText}}/> : null}
             </ListItem>
         )
     }
@@ -262,14 +272,17 @@ export const SideBar = () => {
     const renderPendingFriendRequest = (channel_id, friend_user_name) => {
         return (
             <ListItem key={channel_id} id={channel_id} value={friend_user_name} style={{height: 75}}>
-                <ListItemIcon><UserAvatar size="md" name={friend_user_name}/></ListItemIcon>
+                <ListItemIcon style={{justifyContent: "center"}}>
+                    <UserAvatar size="md" name={friend_user_name}/></ListItemIcon>
                 <ListItemText primary={friend_user_name} classes={{primary: classes.primaryText}}/>
                 <Grid container xs={3}>
-                <Button variant="outlined" disabled size="small" fullWidth
-                        style={{height: 30, fontSize: "0.7rem", color: TITLE_TEXT_COLOR,
-                            borderColor: TITLE_TEXT_COLOR}}>
-                    Pending
-                </Button>
+                    <Button variant="outlined" disabled size="small" fullWidth
+                            style={{
+                                height: 30, fontSize: "0.7rem", color: TITLE_TEXT_COLOR,
+                                borderColor: TITLE_TEXT_COLOR
+                            }}>
+                        Pending
+                    </Button>
                 </Grid>
             </ListItem>
         )
@@ -278,7 +291,8 @@ export const SideBar = () => {
     const renderNewFriendsRequest = (channel_id, friend_user_name) => {
         return (
             <ListItem key={channel_id} id={channel_id} value={friend_user_name} style={{height: 75}}>
-                <ListItemIcon><UserAvatar size="md" name={friend_user_name}/></ListItemIcon>
+                <ListItemIcon style={{justifyContent: "center"}}>
+                    <UserAvatar size="md" name={friend_user_name}/></ListItemIcon>
                 <ListItemText primary={friend_user_name} classes={{primary: classes.primaryText}}/>
                 <Grid container xs={3}>
                     <Button variant="contained" size="small" value={friend_user_name} fullWidth

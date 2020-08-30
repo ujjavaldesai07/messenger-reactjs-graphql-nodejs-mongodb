@@ -13,6 +13,8 @@
     "graphql": "^15.3.0",
     "js-cookie": "^2.2.1",
     "loglevel": "^1.6.8",
+    "md5": "^2.3.0",
+    "notistack": "^1.0.0",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-redux": "^7.2.1",

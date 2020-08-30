@@ -44,22 +44,23 @@ export const mutations = {
             console.log(`[resetNotification] Fail to reset notification e = ${e}`)
         }
     },
-    addUserProfile: async (_, {user_name}) => {
+    addUserProfile: async (_, {user_name, password}) => {
 
-        const res1 = await UserProfile.findOne({user_name: user_name})
+        const findUserProfileResult = await UserProfile.findOne({user_name: user_name})
 
-        console.log(`[addUserProfile] res1 = ${JSON.stringify(res1)}`)
+        console.log(`[addUserProfile] findUserProfileResult = ${JSON.stringify(findUserProfileResult)}`)
 
-        if (!res1) {
+        if (!findUserProfileResult) {
             const userProfile = new UserProfile({
                 user_name: user_name,
+                password: password,
                 request_notification: {newRequests: 0, pendingRequests: 0}, friends: []
             })
 
-            const res2 = await userProfile.save()
+            const createUserProfileResult = await userProfile.save()
 
-            console.log(`[addUserProfile] res2 = ${JSON.stringify(res2)}`)
-            if (res2) {
+            console.log(`[addUserProfile] createUserProfileResult = ${JSON.stringify(createUserProfileResult)}`)
+            if (createUserProfileResult) {
                 for (let index = 1; index <= user_name.length; index++) {
                     let prefix = user_name.slice(0, index).toLowerCase()
                     if (!friendSuggestionList.has(prefix)) {
@@ -70,12 +71,17 @@ export const mutations = {
                 }
 
                 console.log(`[addUserProfile] UserProfile for ${user_name} is added successfully....`)
-                return userProfile
+                return {failure: false, error_msg: null}
+            }
+        } else {
+            if(password.localeCompare(findUserProfileResult.password) === 0) {
+                return {failure: false, error_msg: null}
+            } else {
+                return {failure: true, error_msg: "Username & Password didn't matched"}
             }
         }
 
-        console.log(`[addUserProfile] User Profile for ${user_name} already exist....`)
-        return null
+        return {failure: true, error_msg: "Database connection failure."}
     },
     sendFriendRequest: async (_, {user_name, friend_user_name}) => {
         try {

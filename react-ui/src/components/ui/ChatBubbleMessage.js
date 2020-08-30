@@ -13,7 +13,7 @@ export function ChatBubbleMessage(props) {
                   padding: "0.5em",
                   borderRadius: "10px",
                   width: "fit-content",
-                  fontSize: "1.3rem"
+                  fontSize: "1rem"
               }}
         >
             {props.content}

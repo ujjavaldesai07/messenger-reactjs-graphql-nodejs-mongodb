@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 export const UserProfile = mongoose.model("UserProfile", {
     user_name: {type: String, index: true, required: true},
+    password: String,
     request_notification: {
         newRequests: Number,
         pendingRequests: Number,
