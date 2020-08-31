@@ -1,5 +1,9 @@
 import {Conversation, UserProfile} from "../model.js";
-import {updateAcceptRequestQuery, updateSendRequestQuery} from "../modelOperations.js";
+import {
+    getChannelIDByUsernameAndFriendName,
+    updateAcceptRequestQuery,
+    updateSendRequestQuery
+} from "../modelOperations.js";
 import {pubsub, friendSuggestionMap} from "../constants.js";
 
 
@@ -22,7 +26,7 @@ export const mutations = {
 
         console.log(`res = ${JSON.stringify(res)}`)
 
-        // if no error then insertion is successful and return the object
+        // if no error_msg then insertion is successful and return the object
         if (res) {
             console.log(`[postConversation] conversation is added successfully for channel_id = ${channel_id}....`)
             pubsub.publish(channel_id, {conversations: res.messages})
@@ -82,7 +86,12 @@ export const mutations = {
             const userProfile = new UserProfile({
                 user_name: user_name,
                 password: password,
-                request_notification: {newRequests: 0, pendingRequests: 0}, friends: []
+                request_notification: {newRequests: 0, pendingRequests: 0},
+                friends: {
+                    acceptedRequests: [],
+                    newRequests: [],
+                    pendingRequests: []
+                }
             })
 
             // create new user
@@ -103,7 +112,7 @@ export const mutations = {
                 return {failure: false, error_msg: null}
             }
         } else {
-            if(password.localeCompare(findUserProfileResult.password) === 0) {
+            if (password.localeCompare(findUserProfileResult.password) === 0) {
                 // success
                 return {failure: false, error_msg: null}
             } else {
@@ -112,7 +121,7 @@ export const mutations = {
             }
         }
 
-        // if we get any database error
+        // if we get any database error_msg
         return {failure: true, error_msg: "Database connection failure."}
     },
     sendFriendRequest: async (_, {user_name, friend_user_name}) => {
@@ -123,32 +132,34 @@ export const mutations = {
             const channel_id = Date.now()
 
             // create friend request with pending status in user profile
-            const userSendQueryResult = await updateSendRequestQuery(user_name, friend_user_name, channel_id,
-                "pending", "pendingRequests")
+            const userSendQueryResult = await updateSendRequestQuery(user_name,
+                friend_user_name, channel_id, "pendingRequests")
 
             console.log(`[SendFriendRequest] userSendQueryResult = ${JSON.stringify(userSendQueryResult)}`)
 
-            // if no error then insertion is successful and return the object
+            // if no error_msg then insertion is successful and return the object
             if (userSendQueryResult) {
 
                 // create friend request with pending status in friend's profile
-                const friendSendQueryResult = await updateSendRequestQuery(friend_user_name, user_name, channel_id,
-                    "new request", "newRequests")
+                const friendSendQueryResult = await updateSendRequestQuery(friend_user_name,
+                    user_name, channel_id, "newRequests")
 
                 console.log(`[SendFriendRequest] friendSendQueryResult = ${JSON.stringify(friendSendQueryResult)}`)
 
                 if (friendSendQueryResult) {
+                    const friendProfileNewRequests = friendSendQueryResult.friends.newRequests
                     // new friend will always be push at the end.
-                    const otherUserNewFriend = friendSendQueryResult.friends[friendSendQueryResult.friends.length-1]
+                    const friendProfileNewRequest = friendProfileNewRequests[friendProfileNewRequests.length - 1]
 
                     // publish this object to subscribed friend's profile
                     pubsub.publish(friend_user_name, {
                         app_notifications: {
                             request_notification: friendSendQueryResult.request_notification,
-                            friend: {
-                                channel_id: otherUserNewFriend.channel_id,
-                                friend_user_name: otherUserNewFriend.friend_user_name,
-                                request_status: otherUserNewFriend.request_status
+                            friends: {
+                                newRequests: [{
+                                    channel_id: friendProfileNewRequest.channel_id,
+                                    friend_user_name: friendProfileNewRequest.friend_user_name
+                                }]
                             }
                         }
                     })
@@ -156,13 +167,16 @@ export const mutations = {
                     console.log(`[SendFriendRequest] Friend Status changed to pending successfully....`)
 
                     // return this user object to user
-                    const userNewFriend = userSendQueryResult.friends[userSendQueryResult.friends.length-1]
+                    const userProfilePendingRequests = userSendQueryResult.friends.pendingRequests
+                    const userProfilePendingRequest = userProfilePendingRequests[userProfilePendingRequests.length - 1]
+
                     return {
                         request_notification: userSendQueryResult.request_notification,
-                        friend: {
-                            channel_id: userNewFriend.channel_id,
-                            friend_user_name: userNewFriend.friend_user_name,
-                            request_status: userNewFriend.request_status
+                        friends: {
+                            pendingRequests: [{
+                                channel_id: userProfilePendingRequest.channel_id,
+                                friend_user_name: userProfilePendingRequest.friend_user_name
+                            }]
                         }
                     }
                 }
@@ -180,51 +194,62 @@ export const mutations = {
         try {
             console.log(`[AcceptFriendRequest] AcceptFriendRequest is invoked user_name = ${user_name},friend_user_name = ${friend_user_name} ....`)
 
-            // update the status to user's profile with request_status update
-            const userAcceptQueryResult = await updateAcceptRequestQuery(user_name, friend_user_name,
-                "new request", "newRequests")
+            const channel_id = await getChannelIDByUsernameAndFriendName(user_name, friend_user_name, "newRequests")
 
-            console.log(`[AcceptFriendRequest] userAcceptQueryResult = ${JSON.stringify(userAcceptQueryResult)}`)
+            console.log(`[AcceptFriendRequest] channel_id = ${JSON.stringify(channel_id)}`)
 
-            // if no error then insertion is successful and return the object
-            if (userAcceptQueryResult) {
+            if (channel_id) {
+                // update the status to user's profile with request_status update
+                const userAcceptQueryResult = await updateAcceptRequestQuery(user_name, friend_user_name, channel_id,
+                    "newRequests")
 
-                // update friend's profile with request_status accepted
-                const friendAcceptQueryResult = await updateAcceptRequestQuery(friend_user_name, user_name,
-                    "pending", "pendingRequests")
+                console.log(`[AcceptFriendRequest] userAcceptQueryResult = ${JSON.stringify(userAcceptQueryResult)}`)
 
-                console.log(`[AcceptFriendRequest] friendAcceptQueryResult = ${JSON.stringify(friendAcceptQueryResult)}`)
+                // if no error_msg then insertion is successful and return the object
+                if (userAcceptQueryResult) {
 
-                if (friendAcceptQueryResult) {
-                    // we will receive only the updated object which will be always
-                    // on first index as we are projecting only the updated object in friends list.
-                    const channel_id = friendAcceptQueryResult.friends[0].channel_id
-                    const conversation = new Conversation({
-                        channel_id: channel_id, messages: []})
+                    // new friend will always be push at the end.
+                    const userProfileAcceptRequests = userAcceptQueryResult.friends.acceptedRequests
+                    const userProfileAcceptRequest = userProfileAcceptRequests[userProfileAcceptRequests.length - 1]
 
-                    // create new conversation channel
-                    await conversation.save()
+                    // update friend's profile with request_status accepted
+                    const friendAcceptQueryResult = await updateAcceptRequestQuery(friend_user_name, user_name, channel_id,
+                        "pendingRequests")
 
-                    // publish friend's object to subscribed friend's profile
-                    pubsub.publish(friend_user_name, {
-                        app_notifications: {
-                            request_notification: friendAcceptQueryResult.request_notification,
-                            friend: {
-                                friend_user_name: user_name,
-                                channel_id: channel_id,
-                                request_status: "accepted"
+                    console.log(`[AcceptFriendRequest] friendAcceptQueryResult = ${JSON.stringify(friendAcceptQueryResult)}`)
+
+                    if (friendAcceptQueryResult) {
+
+                        const conversation = new Conversation({
+                            channel_id: userProfileAcceptRequest.channel_id, messages: []
+                        })
+
+                        // create new conversation channel
+                        await conversation.save()
+
+                        // publish friend's object to subscribed friend's profile
+                        pubsub.publish(friend_user_name, {
+                            app_notifications: {
+                                request_notification: friendAcceptQueryResult.request_notification,
+                                friends: {
+                                    acceptedRequests: [{
+                                        friend_user_name: user_name,
+                                        channel_id: userProfileAcceptRequest.channel_id
+                                    }]
+                                }
                             }
-                        }
-                    })
+                        })
 
-                    // return user's object to subscribed user's profile
-                    console.log(`[AcceptFriendRequest] Friend Status changed to accepted successfully....`)
-                    return {
-                        request_notification: userAcceptQueryResult.request_notification,
-                        friend: {
-                            channel_id: channel_id,
-                            friend_user_name: friend_user_name,
-                            request_status: "accepted"
+                        // return user's object to subscribed user's profile
+                        console.log(`[AcceptFriendRequest] Friend Status changed to accepted successfully....`)
+                        return {
+                            request_notification: userAcceptQueryResult.request_notification,
+                            friends: {
+                                acceptedRequests: [{
+                                    channel_id: userProfileAcceptRequest.channel_id,
+                                    friend_user_name: friend_user_name
+                                }]
+                            }
                         }
                     }
                 }

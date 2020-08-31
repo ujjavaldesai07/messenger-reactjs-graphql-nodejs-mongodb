@@ -5,8 +5,8 @@ export const mongodbCleaner = async () => {
 
     console.log("*** MongoDB clean up script is triggered ***");
 
-    await UserProfile.remove({})
-    await Conversation.remove({})
+    await UserProfile.deleteMany({})
+    await Conversation.deleteMany({})
     friendSuggestionMap.clear()
 
     console.log(`friendSuggestionMap.size = ${friendSuggestionMap.size}`)

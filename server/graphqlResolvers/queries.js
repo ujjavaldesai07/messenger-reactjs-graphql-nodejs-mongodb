@@ -3,7 +3,7 @@ import {friendSuggestionMap} from "../constants.js";
 
 export const queries = {
     conversations: async (parent, {channel_id}) => {
-
+        console.log(`[conversations] conversations query is invoked....`)
         // get all messages from the respective channel
         const conversation = await Conversation.findOne({channel_id: channel_id})
 

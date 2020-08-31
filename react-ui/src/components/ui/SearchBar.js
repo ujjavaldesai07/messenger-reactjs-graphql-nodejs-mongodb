@@ -165,21 +165,28 @@ export default function SearchBar(props) {
             }
         }).then(res => {
             if (res.data.sendFriendRequest) {
-                const {friend, request_notification} = res.data.sendFriendRequest
-                dispatch({
-                    type: PENDING_REQUEST_NOTIFICATION,
-                    payload: {
-                        requestNotification: request_notification,
-                        pendingRequests: friend
-                    }
-                })
+                try {
+                    const {friends, request_notification} = res.data.sendFriendRequest
+                    dispatch({
+                        type: PENDING_REQUEST_NOTIFICATION,
+                        payload: {
+                            requestNotification: request_notification,
+                            pendingRequests: friends.pendingRequests[0]
+                        }
+                    })
 
-                // On send request change the suggestion list, so that user
-                // dont send the request again.
-                dispatch({
-                    type: EXCLUDE_SEARCH_SUGGESTIONS,
-                    payload: new Map([[friendUserName, REQUESTED_TEXT]])
-                })
+                    // On send request change the suggestion list, so that user
+                    // dont send the request again.
+                    dispatch({
+                        type: EXCLUDE_SEARCH_SUGGESTIONS,
+                        payload: new Map([[friends.pendingRequests[0].friend_user_name, REQUESTED_TEXT]])
+                    })
+                } catch (e) {
+                    log.info(`[SearchBar] query result is null while sending friend request
+                     res.data.sendFriendRequest = ${JSON.stringify(res.data.sendFriendRequest)}`)
+                    return null
+                }
+
             }
         }).catch(e => log.error(`[SEND_FRIEND_REQUEST]: Unable to send friend request to graphql server e = ${e}`))
     }

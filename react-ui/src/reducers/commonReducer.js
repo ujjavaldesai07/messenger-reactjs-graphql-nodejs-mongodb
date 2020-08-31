@@ -15,7 +15,7 @@ export const notificationReducer = (state
             }
 
         case ACCEPTED_REQUEST_NOTIFICATION:
-            
+
             if (state.newRequests.length > 0) {
                 state.newRequests = state.newRequests.filter(
                     newRequest => newRequest.channel_id !== action.payload.acceptedRequests.channel_id)

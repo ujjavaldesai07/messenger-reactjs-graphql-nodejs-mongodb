@@ -1,12 +1,5 @@
 // graphql schema
 export const typeDefs = `
-type Message {
-    id: ID!
-    user: String!
-    content: String!
-    chatPartner: String!
-}
-
 type TotalRequestNotification {
     newRequests: Int
     pendingRequests: Int
@@ -15,18 +8,23 @@ type TotalRequestNotification {
 type Friend {
     channel_id: ID
     friend_user_name: ID
-    request_status: String
+}
+
+type Friends {
+    acceptedRequests: [Friend]
+    newRequests: [Friend]
+    pendingRequests: [Friend]
 }
 
 type AppNotifications {
     request_notification: TotalRequestNotification
-    friend: Friend
+    friends: Friends
 }
 
 type UserProfile {
     user_name: String!
     request_notification: TotalRequestNotification
-    friends: [Friend]
+    friends: Friends
 }
 
 type Conversation {

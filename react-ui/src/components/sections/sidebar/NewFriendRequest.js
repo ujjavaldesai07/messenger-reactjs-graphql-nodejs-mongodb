@@ -4,10 +4,10 @@ import log from "loglevel";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ListItemText from "@material-ui/core/ListItemText";
-import {SENDER_CHAT_BUBBLE_BACKGROUND, TITLE_TEXT_COLOR} from "../../../constants/constants";
+import {REQUESTED_TEXT, SENDER_CHAT_BUBBLE_BACKGROUND, TITLE_TEXT_COLOR} from "../../../constants/constants";
 import {UserAvatar} from "../../ui/UserAvatar";
 import {useSidebarStyles} from "../../../styles/sidebarStyles";
-import {ACCEPTED_REQUEST_NOTIFICATION} from "../../../actions/types";
+import {ACCEPTED_REQUEST_NOTIFICATION, EXCLUDE_SEARCH_SUGGESTIONS} from "../../../actions/types";
 import {useMutation} from "@apollo/client";
 import {ACCEPT_FRIEND_REQUEST} from "../../../constants/graphql";
 import {useDispatch, useSelector} from "react-redux";
@@ -26,15 +26,28 @@ export function NewFriendRequest({channel_id, friend_user_name}) {
             }
         }).then(res => {
             if (res.data.acceptFriendRequest) {
-                const {friend, request_notification} = res.data.acceptFriendRequest
-                log.info(`[SideBar] acceptFriendRequestHandler response = ${JSON.stringify(res.data.acceptFriendRequest)}`)
-                dispatch({
-                    type: ACCEPTED_REQUEST_NOTIFICATION,
-                    payload: {
-                        requestNotification: request_notification,
-                        acceptedRequests: friend
-                    }
-                })
+                try {
+                    const {friends, request_notification} = res.data.acceptFriendRequest
+                    log.info(`[SideBar] acceptFriendRequestHandler response = ${JSON.stringify(res.data.acceptFriendRequest)}`)
+                    dispatch({
+                        type: ACCEPTED_REQUEST_NOTIFICATION,
+                        payload: {
+                            requestNotification: request_notification,
+                            acceptedRequests: friends.acceptedRequests[0]
+                        }
+                    })
+
+                    // On accept request change the suggestion list, so that user
+                    // dont send the request again.
+                    dispatch({
+                        type: EXCLUDE_SEARCH_SUGGESTIONS,
+                        payload: new Map([[friends.acceptedRequests[0].friend_user_name, REQUESTED_TEXT]])
+                    })
+                } catch (e) {
+                    log.info(`[SearchBar] query result is null while accepting friend request
+                     res.data.acceptFriendRequest = ${JSON.stringify(res.data.acceptFriendRequest)}`)
+                    return null
+                }
             }
         }).catch(e => log.error(`[SEND_FRIEND_REQUEST]: Unable to send friend request to graphql server e = ${e}`))
     }

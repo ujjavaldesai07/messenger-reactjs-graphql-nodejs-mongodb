@@ -9,16 +9,25 @@ query ($user_name:String!) {
       pendingRequests
     }
     friends {
-      channel_id
-      friend_user_name
-      request_status
+      newRequests {
+        channel_id
+        friend_user_name
+      }
+      acceptedRequests {
+        channel_id
+        friend_user_name
+      }
+      pendingRequests {
+        channel_id
+        friend_user_name
+      }
     }
   }
 }
 `
 
 export const GET_FRIEND_SUGGESTIONS = gql`
-    query ($prefix:String!) {
+query ($prefix:String!) {
     friendSuggestions(prefix: $prefix)
 }
 `
@@ -46,13 +55,14 @@ export const SEND_FRIEND_REQUEST = gql`
 mutation ($user_name:String!, $friend_user_name:String!) {
   sendFriendRequest(user_name: $user_name, friend_user_name: $friend_user_name) {
     request_notification {
-      pendingRequests
-      newRequests
+        pendingRequests
+        newRequests
     }
-    friend {
-      channel_id
-      friend_user_name
-      request_status
+    friends {
+        pendingRequests {
+            channel_id
+            friend_user_name
+        }
     }
   }
 }
@@ -62,13 +72,14 @@ export const ACCEPT_FRIEND_REQUEST = gql`
 mutation ($user_name:String!, $friend_user_name:String!) {
   acceptFriendRequest(user_name: $user_name, friend_user_name: $friend_user_name) {
     request_notification {
-      pendingRequests
-      newRequests
+        pendingRequests
+        newRequests
     }
-    friend {
-      channel_id
-      friend_user_name
-      request_status
+    friends {
+        acceptedRequests {
+            channel_id
+            friend_user_name
+      }
     }
   }
 }
@@ -101,11 +112,20 @@ subscription ($user_name: String!) {
     request_notification {
         newRequests
         pendingRequests
-      }
-    friend {
-      channel_id
-      friend_user_name
-      request_status
+    }
+    friends {
+        newRequests {
+            channel_id
+            friend_user_name
+        }
+        acceptedRequests {
+            channel_id
+            friend_user_name
+        }
+        pendingRequests {
+            channel_id
+            friend_user_name
+        }
     }
   }
 }

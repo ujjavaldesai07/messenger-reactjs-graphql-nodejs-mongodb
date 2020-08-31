@@ -27,29 +27,50 @@ export function useSubscriptionNotification(subscribedData, subscribedDataLoadin
     const excludeSearchSuggestions = useSelector(state => state.excludeSearchSuggestionsReducer)
 
     useEffect(() => {
-        log.info(`[SideBar] Component did mount hook for subscribedData dependency`)
-        log.info(`[SideBar] subscribedData = ${JSON.stringify(subscribedData)}, notificationLoading = ${subscribedDataLoading}`)
+        log.info(`[useSubscriptionNotification] Component did mount hook for subscribedData dependency`)
+        log.info(`[useSubscriptionNotification] subscribedData = ${JSON.stringify(subscribedData)},
+         notificationLoading = ${subscribedDataLoading}`)
 
-        // check if data is received and is not null
-        // initially we will get null data because the subscription triggers
-        // after we subscribe the data.
-        if (!subscribedDataLoading && subscribedData && subscribedData.app_notifications) {
+        // store temp search suggestions in map
+        // so that we dont want to give option to user to send
+        // friend request who is already friend.
+        let tempSearchSuggestions = new Map()
 
-            if (subscribedData.app_notifications.friend) {
-
-                // store temp search suggestions in map
-                // so that we dont want to give option to user to send
-                // friend request who is already friend.
-                let tempSearchSuggestions = new Map()
-
+        try {
+            // check if data is received and is not null
+            // initially we will get null data because the subscription triggers
+            // after we subscribe the data.
+            if (!subscribedDataLoading && subscribedData.app_notifications.friends) {
                 // destructure subscribe data
-                let {friend, request_notification} = subscribedData.app_notifications
+                let {friends, request_notification} = subscribedData.app_notifications
+                let {acceptedRequests, newRequests, pendingRequests} = friends
 
-                // check only the first character of status as all the statuses
-                // are unique.
-                switch (friend.request_status && friend.request_status.charAt(0)) {
-                    case 'n':
+                if (acceptedRequests && acceptedRequests.length > 0) {
+                    acceptedRequests.forEach(friend => {
+                        // if user_name not added then add it.
+                        if (!excludeSearchSuggestions.has(friend.friend_user_name)) {
+                            tempSearchSuggestions.set(friend.friend_user_name, ACCEPTED_TEXT)
+                        }
 
+                        // update the snackbar notification
+                        enqueueSnackbar(`[Request Accepted] You and ${friend.friend_user_name} are now friends.`,
+                            {
+                                variant: "success",
+                                autoHideDuration: SNACKBAR_AUTO_HIDE_DURATION,
+                                preventDuplicate: true
+                            })
+
+                        // dispatch new request notification and later render it with new data
+                        // in right tab.
+                        dispatch({
+                            type: ACCEPTED_REQUEST_NOTIFICATION,
+                            payload: {acceptedRequests: friend, requestNotification: request_notification}
+                        })
+                    })
+                }
+
+                if (newRequests && newRequests.length > 0) {
+                    newRequests.forEach(friend => {
                         // if user_name not added then add it.
                         if (!excludeSearchSuggestions.has(friend.friend_user_name)) {
                             tempSearchSuggestions.set(friend.friend_user_name, PENDING_TEXT)
@@ -69,26 +90,12 @@ export function useSubscriptionNotification(subscribedData, subscribedDataLoadin
                             type: NEW_REQUEST_NOTIFICATION,
                             payload: {newRequests: friend, requestNotification: request_notification}
                         })
-                        break
-                    case 'a':
-                        if (!excludeSearchSuggestions.has(friend.friend_user_name)) {
-                            tempSearchSuggestions.set(friend.friend_user_name, ACCEPTED_TEXT)
-                        }
+                    })
+                }
 
-                        enqueueSnackbar(`[Request Accepted] You and ${friend.friend_user_name} are now friends.`,
-                            {
-                                variant: "success",
-                                autoHideDuration: SNACKBAR_AUTO_HIDE_DURATION,
-                                preventDuplicate: true
-                            })
-
-
-                        dispatch({
-                            type: ACCEPTED_REQUEST_NOTIFICATION,
-                            payload: {acceptedRequests: friend, requestNotification: request_notification}
-                        })
-                        break
-                    case 'p':
+                if (pendingRequests && pendingRequests.length > 0) {
+                    log.info(`[useSubscriptionNotification] pendingRequests = ${JSON.stringify(pendingRequests)}`)
+                    pendingRequests.forEach(friend => {
                         if (!excludeSearchSuggestions.has(friend.friend_user_name)) {
                             tempSearchSuggestions.set(friend.friend_user_name, REQUESTED_TEXT)
                         }
@@ -104,9 +111,7 @@ export function useSubscriptionNotification(subscribedData, subscribedDataLoadin
                             type: PENDING_REQUEST_NOTIFICATION,
                             payload: {pendingRequests: friend, requestNotification: request_notification}
                         })
-                        break
-                    default:
-                        throw new Error("Its not possible to land here...")
+                    })
                 }
 
                 if (tempSearchSuggestions.size > 0) {
@@ -118,8 +123,14 @@ export function useSubscriptionNotification(subscribedData, subscribedDataLoadin
                         payload: tempSearchSuggestions
                     })
                 }
+            }
+        } catch (e) {
+            log.info(`[useSubscriptionNotification] subscribedData.app_notifications.friends is null
+            subscribedData = ${JSON.stringify(subscribedData)}`)
+        }
 
-            } else if (subscribedData.app_notifications.request_notification) {
+        try {
+            if (subscribedData.app_notifications.request_notification) {
 
                 // if publisher only sends request_notification then we will land here.
                 // for eg we will land here during resetting the notification.
@@ -128,6 +139,9 @@ export function useSubscriptionNotification(subscribedData, subscribedDataLoadin
                     payload: {requestNotification: subscribedData.app_notifications.request_notification}
                 })
             }
+        } catch (e) {
+            log.info(`[useSubscriptionNotification] subscribedData.app_notifications.request_notification is null
+             subscribedData = ${JSON.stringify(subscribedData)}`)
         }
 
         // we want to update only when subscribedData changes

@@ -19,7 +19,7 @@ import LoadingBackdrop from "../ui/LoadingBackdrop";
 
 export function LoginRoute() {
     const [loginState, setLoginState] = useState({
-        user_name: '', password: '', error: null})
+        user_name: '', password: '', error_msg: null, error: false})
 
     const dispatch = useDispatch()
     const [addUserProfile, {loading, error}] = useMutation(ADD_USER_PROFILE)
@@ -58,7 +58,7 @@ export function LoginRoute() {
                         payload: credentials
                     })
 
-                    if (loginState.error) {
+                    if (loginState.error_msg) {
                         setLoginState({...loginState, error: null})
                     }
 
@@ -110,8 +110,8 @@ export function LoginRoute() {
                 {renderTextField("Username", handleUsernameChange, loginState.user_name, "text")}
                 {renderTextField("Password", handlePasswordChange, loginState.password, "password")}
 
-                {loginState.error ? <Grid item style={{color: "red"}}>
-                    {`Error: ${loginState.error}`}
+                {loginState.error_msg ? <Grid item style={{color: "red"}}>
+                    {`Error: ${loginState.error_msg}`}
                 </Grid> : null}
 
                 <Grid item style={{paddingBottom: 30}}>

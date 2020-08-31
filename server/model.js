@@ -7,17 +7,30 @@ export const UserProfile = mongoose.model("UserProfile", {
         newRequests: Number,
         pendingRequests: Number,
     },
-    friends: [
-        {
-            channel_id: Number,
-            friend_user_name: String,
-            request_status: String,
-            newly_joined: Boolean,
-            last_message: String,
-            last_message_timestamp: Date,
-            total_unread_messages: Number
-        }
-    ],
+    friends: {
+        acceptedRequests: [
+            {
+                channel_id: Number,
+                friend_user_name: String
+                // newly_joined: Boolean,
+                // last_message: String,
+                // last_message_timestamp: Date,
+                // total_unread_messages: Number
+            }
+        ],
+        newRequests: [
+            {
+                channel_id: Number,
+                friend_user_name: String
+            }
+        ],
+        pendingRequests: [
+            {
+                channel_id: Number,
+                friend_user_name: String
+            }
+        ],
+    }
 });
 
 export const Conversation = mongoose.model("Conversation", {

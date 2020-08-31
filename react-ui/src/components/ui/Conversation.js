@@ -19,36 +19,38 @@ export function Conversation({activeFriendName, channel_id}) {
     const renderConversation = () => {
         log.info(`activeUserState = ${activeUsername}, loading = ${loading}, data = ${JSON.stringify(data)}`)
 
-        if (loading || !data
-            || (data && (!data.conversations)) || data.conversations.length === 0 ) {
+        try {
+            if (!loading && data.conversations.length > 0) {
+                // works only in chrome
+                // scroll to latest message.
+                scroll.scrollToBottom();
+
+                // need count to add keys in react components.
+                let count = 0
+                return data.conversations.map(({user_name, message}) => {
+                    ++count
+                    // send message to correct direction based on the username.
+                    if (activeUsername.localeCompare(user_name) === 0) {
+                        return (
+                            <Grid key={count} container style={{paddingBottom: 10}}>
+                                <MemoizedSendMessage content={message} name={user_name}/>
+                            </Grid>
+                        )
+                    } else if (activeFriendName.localeCompare(user_name) === 0) {
+                        return (
+                            <Grid key={count} container style={{paddingBottom: 10}}>
+                                <MemoizedReceiveMessage content={message} name={user_name}/>
+                            </Grid>
+                        )
+                    } else {
+                        return null
+                    }
+                })
+            }
+        } catch (e) {
+            log.info(`[Conversation] data.conversations is undefined and data = ${JSON.stringify(data)}`)
             return null
         }
-
-        // works only in chrome
-        // scroll to latest message.
-        scroll.scrollToBottom();
-
-        // need count to add keys in react components.
-        let count = 0
-        return data.conversations.map(({user_name, message}) => {
-            ++count
-            // send message to correct direction based on the username.
-            if (activeUsername.localeCompare(user_name) === 0) {
-                return (
-                    <Grid key={count} container style={{paddingBottom: 10}}>
-                        <MemoizedSendMessage content={message} name={user_name}/>
-                    </Grid>
-                )
-            } else if (activeFriendName.localeCompare(user_name) === 0) {
-                return (
-                    <Grid key={count} container style={{paddingBottom: 10}}>
-                        <MemoizedReceiveMessage content={message} name={user_name}/>
-                    </Grid>
-                )
-            } else {
-                return null
-            }
-        })
     }
 
     log.info(`[Conversation] Rendering Conversation Component....`)

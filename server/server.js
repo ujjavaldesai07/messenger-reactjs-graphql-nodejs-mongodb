@@ -9,8 +9,6 @@ import {mongodbCleaner} from "./mongodbCleaner.js";
 
 const MONGODB_URI = process.env.MONGODB_URI ? process.env.MONGODB_URI : "mongodb://localhost:27017/Messenger"
 
-console.log(`MONGODB_URI = ${MONGODB_URI}`)
-
 mongoose.connect(MONGODB_URI,
     {useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false, autoIndex: false});
 

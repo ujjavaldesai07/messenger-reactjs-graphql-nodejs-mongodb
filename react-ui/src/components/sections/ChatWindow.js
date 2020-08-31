@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {useMutation} from '@apollo/client';
 import {Grid} from "@material-ui/core";
 import backgroundImage from '../../images/background.jpg'
@@ -13,7 +13,6 @@ import {MessageBox} from "../ui/MessageBox";
 import {Conversation} from "../ui/Conversation";
 import {POST_CONVERSATION} from "../../constants/graphql";
 import {useSelector} from "react-redux";
-import {useSnackbar} from "notistack";
 
 export function ChatWindow() {
     const {user_name: activeUsername} = useSelector(state => state.activeUsernameReducer)
@@ -21,20 +20,8 @@ export function ChatWindow() {
     const [postMessage] = useMutation(POST_CONVERSATION)
     const sidebarDrawerStatus = useSelector(state => state.sidebarDrawerReducer)
     const sidebarPadding = sidebarDrawerStatus ? DRAWER_WIDTH + CHAT_WINDOW_PADDING : SIDEBAR_PADDING
-    const {enqueueSnackbar} = useSnackbar();
 
-    useEffect(() => {
-        if (activeUsername) {
-            enqueueSnackbar("Welcome to messenger ! Start finding new friends online.",
-                {
-                    variant: "info",
-                    autoHideDuration: 5000,
-                    preventDuplicate: true
-                })
-        }
-
-    }, [activeUsername, enqueueSnackbar])
-
+    log.info(`[ChatWindow] activeUsername = ${activeUsername}, friend_user_name = ${friend_user_name}`)
     if (!activeUsername || !friend_user_name) {
         return null
     }

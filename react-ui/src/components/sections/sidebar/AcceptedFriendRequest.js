@@ -9,12 +9,13 @@ import {useSidebarStyles} from "../../../styles/sidebarStyles";
 import Cookies from "js-cookie";
 import {ACTIVE_FRIEND_COOKIE} from "../../../constants/constants";
 import {ACTIVE_FRIEND_NAME} from "../../../actions/types";
-import {useDispatch} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 
-export function AcceptedFriendRequest({channel_id, friend_user_name, selectedFriend,
-                                       newlyJoined, sidebarDrawerStatus}) {
+export function AcceptedFriendRequest({channel_id, friend_user_name, newlyJoined}) {
     const classes = useSidebarStyles()
     const dispatch = useDispatch()
+    const selectedFriend = useSelector(state => state.friendSelectionReducer.friend_user_name)
+    const sidebarDrawerStatus = useSelector(state => state.sidebarDrawerReducer)
 
     /**
      * On Friend selected to chat set the cookie

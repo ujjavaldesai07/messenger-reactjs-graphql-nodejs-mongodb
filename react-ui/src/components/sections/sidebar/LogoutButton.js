@@ -27,17 +27,20 @@ export function LogoutButton() {
     const handleLogout = () => {
         Cookies.remove(USER_AUTH_COOKIE)
         Cookies.remove(ACTIVE_FRIEND_COOKIE)
+
         dispatch({
             type: ACTIVE_USER_CREDENTIALS,
             payload: null
         })
+
         dispatch({
             type: ACTIVE_FRIEND_NAME,
             payload: {
                 channel_id: 0,
-                friend_user_name: 'default'
+                friend_user_name: null
             }
         })
+
         dispatch({
             type: REMOVE_NOTIFICATION
         })

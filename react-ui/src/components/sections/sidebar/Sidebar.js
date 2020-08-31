@@ -48,7 +48,6 @@ export const SideBar = () => {
     const sidebarDrawerStatus = useSelector(state => state.sidebarDrawerReducer)
     const {user_name: activeUsername} = useSelector(state => state.activeUsernameReducer)
     const notificationReducer = useSelector(state => state.notificationReducer)
-    const selectedFriend = useSelector(state => state.friendSelectionReducer)
 
     // initial sidebar states
     const [sidebarState, setSidebarState] = useState({tabValue: 0, findBtnState: false})
@@ -66,81 +65,10 @@ export const SideBar = () => {
 
     // custom hooks
     useSubscriptionNotification(subscribedData, subscribedDataLoading, enqueueSnackbar)
-    useQueriedUserProfile(queriedUserProfile, queriedUserProfileLoading)
+    useQueriedUserProfile(queriedUserProfile, queriedUserProfileLoading, enqueueSnackbar)
 
-    /**
-     * Add friend based on selected tab.
-     *
-     * @param friends
-     * @param friendComponentList
-     * @param newlyJoined
-     */
-    const addFriendBasedOnRequestStatus = (friends, friendComponentList, newlyJoined) => {
-        if (friends.length === 0) {
-            return
-        }
 
-        log.info(`addFriendBasedOnRequestStatus = ${JSON.stringify(friends)}`)
-        friends.forEach(({request_status, channel_id, friend_user_name}) => {
-            switch (request_status.charAt(0)) {
-                case 'a':
-                    if (sidebarState.tabValue === 0) {
-                        friendComponentList.push(<AcceptedFriendRequest key={channel_id}
-                                                                        channel_id={channel_id}
-                                                                        friend_user_name={friend_user_name}
-                                                                        selectedFriend={selectedFriend.friend_user_name}
-                                                                        newlyJoined={newlyJoined}
-                                                                        sidebarDrawerStatus={sidebarDrawerStatus}/>)
-                    }
-                    break
-                case 'n':
-                    if (sidebarState.tabValue === 1) {
-                        friendComponentList.push(<NewFriendRequest key={channel_id}
-                                                                   channel_id={channel_id}
-                                                                   friend_user_name={friend_user_name}/>)
-                    }
-                    break
-                case 'p':
-                    if (sidebarState.tabValue === 2) {
-                        friendComponentList.push(<PendingFriendRequest key={channel_id}
-                                                                       channel_id={channel_id}
-                                                                       friend_user_name={friend_user_name}/>)
-                    }
-                    break
-                default:
-                    throw new Error(`[SideBar] request_status option ${request_status} not supported.`)
-            }
-        })
-    }
-
-    const renderFriendsBasedOnTabSelection = () => {
-        log.info(`[SideBar] renderFriends queriedUserProfile = ${JSON.stringify(queriedUserProfile)}, sidebarState = ${JSON.stringify(sidebarState)}`)
-
-        let friendComponentList = []
-
-        // render friends from new notification data from subscription
-        addFriendBasedOnRequestStatus(notificationReducer.acceptedRequests, friendComponentList, "new")
-        addFriendBasedOnRequestStatus(notificationReducer.newRequests, friendComponentList)
-        addFriendBasedOnRequestStatus(notificationReducer.pendingRequests, friendComponentList)
-
-        // render friends from the query and this will be rendered only for the first time.
-        if (!queriedUserProfileLoading && queriedUserProfile && queriedUserProfile.userProfile) {
-            addFriendBasedOnRequestStatus(queriedUserProfile.userProfile.friends, friendComponentList)
-        }
-
-        // if no components
-        if (friendComponentList.length === 0) {
-            if (sidebarState.tabValue === 0 && sidebarDrawerStatus) {
-                friendComponentList.push(renderEmptyRequestComponent('No Friends'))
-            } else if (sidebarState.tabValue === 1) {
-                friendComponentList.push(renderEmptyRequestComponent('No New Requests'))
-            } else if (sidebarState.tabValue === 2) {
-                friendComponentList.push(renderEmptyRequestComponent('No Pending Requests'))
-            }
-        }
-        return friendComponentList
-    }
-
+    // renderers
     const renderEmptyRequestComponent = (title) => {
         return (
             <Grid key={title} container justify="center" style={{
@@ -160,6 +88,112 @@ export const SideBar = () => {
         )
     }
 
+    const renderAcceptedFriendRequestComponent = (friends, friendComponentList, newlyJoined) => {
+        if (friends.length === 0) {
+            return
+        }
+
+        friends.forEach(({channel_id, friend_user_name}) => {
+            friendComponentList.push(<AcceptedFriendRequest key={channel_id}
+                                                            channel_id={channel_id}
+                                                            friend_user_name={friend_user_name}
+                                                            newlyJoined={newlyJoined}/>)
+        })
+    }
+
+    const renderNewFriendRequestComponent = (friends, friendComponentList) => {
+        if (friends.length === 0) {
+            return
+        }
+
+        friends.forEach(({channel_id, friend_user_name}) => {
+            friendComponentList.push(<NewFriendRequest key={channel_id}
+                                                       channel_id={channel_id}
+                                                       friend_user_name={friend_user_name}/>)
+        })
+    }
+
+    const renderPendingFriendRequestComponent = (friends, friendComponentList) => {
+        if (friends.length === 0) {
+            return
+        }
+
+        friends.forEach(({channel_id, friend_user_name}) => {
+            friendComponentList.push(<PendingFriendRequest key={channel_id}
+                                                           channel_id={channel_id}
+                                                           friend_user_name={friend_user_name}/>)
+        })
+    }
+
+    /**
+     * Add friend based on selected tab.
+     *
+     */
+    const renderFriendsBasedOnTabSelection = () => {
+        log.info(`[SideBar] renderFriends queriedUserProfile = ${JSON.stringify(queriedUserProfile)},
+         sidebarState = ${JSON.stringify(sidebarState)}`)
+
+        log.info(`[SideBar] renderFriendsBasedOnTabSelection notificationReducer = ${JSON.stringify(notificationReducer)}`)
+
+        let friendComponentList = []
+
+        const friends = {
+            acceptedRequests: [],
+            newRequests: [],
+            pendingRequests: []
+        }
+
+        try {
+            if (!queriedUserProfileLoading && queriedUserProfile.userProfile.friends) {
+                friends.acceptedRequests = queriedUserProfile.userProfile.friends.acceptedRequests
+                friends.newRequests = queriedUserProfile.userProfile.friends.newRequests
+                friends.pendingRequests = queriedUserProfile.userProfile.friends.pendingRequests
+            }
+        } catch (e) {
+            log.info(`[SideBar] queriedUserProfile is empty = ${JSON.stringify(queriedUserProfile)}`)
+        }
+
+        // render friends from new notification data from subscription
+        // render friends from the query and this will be rendered only for the first time.
+        switch (sidebarState.tabValue) {
+            case 0:
+                renderAcceptedFriendRequestComponent(notificationReducer.acceptedRequests,
+                    friendComponentList, "new")
+                renderAcceptedFriendRequestComponent(friends.acceptedRequests,
+                    friendComponentList)
+
+                if (sidebarDrawerStatus && friendComponentList.length === 0) {
+                    friendComponentList.push(renderEmptyRequestComponent('No Friends'))
+                }
+                break
+            case 1:
+                renderNewFriendRequestComponent(notificationReducer.newRequests,
+                    friendComponentList)
+                renderNewFriendRequestComponent(friends.newRequests,
+                    friendComponentList)
+
+                if (sidebarDrawerStatus && friendComponentList.length === 0) {
+                    friendComponentList.push(renderEmptyRequestComponent('No New Requests'))
+                }
+                break
+            case 2:
+                renderPendingFriendRequestComponent(notificationReducer.pendingRequests,
+                    friendComponentList)
+                renderPendingFriendRequestComponent(friends.pendingRequests,
+                    friendComponentList)
+
+                if (sidebarDrawerStatus && friendComponentList.length === 0) {
+                    friendComponentList.push(renderEmptyRequestComponent('No Pending Requests'))
+                }
+                break
+            default:
+                log.error(`[SideBar] Unknown value on tab selection = ${sidebarState.tabValue}.`)
+        }
+
+        return friendComponentList
+    }
+
+    // event handlers
     const changeFindBtnState = (value) => {
         setSidebarState({...sidebarState, findBtnState: value})
     }
@@ -168,10 +202,8 @@ export const SideBar = () => {
         setSidebarState({...sidebarState, tabValue: value})
     }
 
-    /**
-     * store the drawer status in redux
-     */
     const handleDrawerOpen = () => {
+        // store the drawer status in redux
         dispatch({
             type: SIDEBAR_DRAWER_OPEN
         })
@@ -186,6 +218,8 @@ export const SideBar = () => {
         setSidebarState({...sidebarState, findBtnState: false, tabValue: 0})
     };
 
+    // if user has not logged in and tries to land on this page
+    // then just redirect it login page.
     if (!activeUsername) {
         history.push("/login")
         return null
