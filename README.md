@@ -67,6 +67,16 @@ Messenger is a chat application built using ReactJS, NodeJS, GraphQL, Websocket 
       node server.js
    ```
 
+**HOW TO TEST THIS APPLICATION?** 
+
+1) Create two users in two different browsers for eg Safari and Google Chrome.
+2) Find the name of user by clicking "Find Friend Online" button from the sidebar.
+3) Send and Accept the request. 
+4) Click on the chat icon tab and select the friend name.
+5) Finally the application will let you to communicate with each other.
+
+  **Note:** Messages are stored as raw/unencrypted format.
+
 **References**  
 1. https://www.apollographql.com/docs/react/
 2. https://docs.mongodb.com/manual/introduction/
