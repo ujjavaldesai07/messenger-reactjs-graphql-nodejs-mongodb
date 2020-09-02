@@ -26,24 +26,28 @@ Messenger is a chat application built using ReactJS, NodeJS, GraphQL, Websocket 
 - **Material-UI:** Used Google's material design based on the CSS Framework for a responsive website.
 - **MongoDB:** Stores user account and chat information.
 - **Heroku Cloud Platform:** Deploying microservices on Heroku.
+- **mLab MongoDB:** Free online mongoDB storage access upto 512MB.
 
 **Steps for executing the application using docker-compose:**
 1. Clone/Download the repository.
 
-2. Set the environmental variables.
+2. Create account from [here](https://mlab.com) on mLab for free mongoDB access.
+   For setting up connection here's the [documentation](https://docs.mlab.com).
+
+3. Set the environmental variables.
 
    **MONGODB_URI**: For setting the MongoDB URL. 
 
    **REACT_APP_SERVER_URL**: For setting back-end NodeJS server URL.
    
-3. Run the below command in react-ui and server directory to download all
+4. Run the below command in react-ui and server directory to download all
    the dependencies.
    
    ```
       yarn install
    ```
    
-4. Run the below command in server directory to start the NodeJS server.
+5. Run the below command in server directory to start the NodeJS server.
 
    ```
       npm start
@@ -51,7 +55,7 @@ Messenger is a chat application built using ReactJS, NodeJS, GraphQL, Websocket 
       nodemon ./server.js
    ```
    
-5. Run the below command to start client side React-UI service.
+6. Run the below command to start client side React-UI service.
 
    To run in Dev environment.
    ```
@@ -86,3 +90,5 @@ Messenger is a chat application built using ReactJS, NodeJS, GraphQL, Websocket 
 6. https://hub.docker.com/_/mongo
 7. https://github.com/js-cookie/js-cookie
 8. https://reactjs.org/docs/hooks-reference.html
+9. https://mongodb.github.io/node-mongodb-native/driver-articles/mongoclient.html
+10. https://docs.mlab.com/
