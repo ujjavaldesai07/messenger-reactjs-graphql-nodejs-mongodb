@@ -16,7 +16,6 @@ import Cookies from "js-cookie";
 import {
     ACTIVE_FRIEND_NAME,
     ACTIVE_USER_CREDENTIALS,
-    EXCLUDE_SEARCH_SUGGESTIONS,
     REMOVE_NOTIFICATION
 } from "../../../actions/types";
 import history from "../../../history";

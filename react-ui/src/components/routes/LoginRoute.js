@@ -19,10 +19,10 @@ import LoadingBackdrop from "../ui/LoadingBackdrop";
 
 export function LoginRoute() {
     const [loginState, setLoginState] = useState({
-        user_name: '', password: '', error_msg: null, error: false})
+        user_name: '', password: '', error_msg: ''})
 
     const dispatch = useDispatch()
-    const [addUserProfile, {loading, error}] = useMutation(ADD_USER_PROFILE)
+    const [addUserProfile, {loading}] = useMutation(ADD_USER_PROFILE)
 
     // custom hook check whether user has previously logged in
     // and if yes then retrieved details from cookie.
@@ -38,6 +38,24 @@ export function LoginRoute() {
 
     const handleLoginButton = () => {
         log.info(`[LoginRoute] handleLoginButton clicked`)
+
+        const {user_name, password} = loginState
+
+        if(password.length < 6) {
+            setLoginState({...loginState,
+                error_msg: "Password must contain minimum of 8 characters."})
+            return
+        } else if(user_name.length < 5) {
+            setLoginState({...loginState,
+                error_msg: "Username must contain minimum of 5 characters."})
+            return
+        } else if(password.localeCompare(user_name) === 0) {
+            setLoginState({...loginState,
+                error_msg: "Username and password must not be same."})
+            return
+        } else if (loginState.error_msg.length > 0) {
+            setLoginState({...loginState, error_msg: ''})
+        }
 
         // convert password to md5 and send it to server
         let credentials = {
@@ -59,13 +77,13 @@ export function LoginRoute() {
                     })
 
                     if (loginState.error_msg) {
-                        setLoginState({...loginState, error: null})
+                        setLoginState({...loginState, error_msg: ''})
                     }
 
                     history.push("/")
                 } else {
                     // on failure
-                    setLoginState({...loginState, error: res.data.addUserProfile.error_msg})
+                    setLoginState({...loginState, error_msg: res.data.addUserProfile.error_msg})
                 }
             }
         }).catch(e => log.error(`[ADD USER_PROFILE]: Unable to add user profile to graphql server e = ${e}`))
@@ -100,7 +118,7 @@ export function LoginRoute() {
     return (
         <Grid id="Login" container justify="center"
               alignItems="center" style={{position: "relative", top: 200, height: 300}}>
-            <Grid item xs={3} container direction="column" spacing={3} justify="center"
+            <Grid item xs={4} container direction="column" spacing={3} justify="center"
                   style={{backgroundColor: CARD_COLOR}}>
                 <Grid item container justify="center">
                     <Typography variant="h6" style={{color: TITLE_TEXT_COLOR, fontSize: "1.5rem"}}>
@@ -110,7 +128,7 @@ export function LoginRoute() {
                 {renderTextField("Username", handleUsernameChange, loginState.user_name, "text")}
                 {renderTextField("Password", handlePasswordChange, loginState.password, "password")}
 
-                {loginState.error_msg ? <Grid item style={{color: "red"}}>
+                {loginState.error_msg.length > 0 ? <Grid item style={{color: "red", fontSize: "0.9rem"}}>
                     {`Error: ${loginState.error_msg}`}
                 </Grid> : null}
 

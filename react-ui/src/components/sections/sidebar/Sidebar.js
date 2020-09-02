@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import clsx from 'clsx';
 import {useTheme} from '@material-ui/core/styles';
 import Drawer from '@material-ui/core/Drawer';
@@ -49,6 +49,8 @@ export const SideBar = () => {
     const {user_name: activeUsername} = useSelector(state => state.activeUsernameReducer)
     const notificationReducer = useSelector(state => state.notificationReducer)
 
+    const excludeSearchSuggestions = useSelector(state => state.excludeSearchSuggestionsReducer)
+
     // initial sidebar states
     const [sidebarState, setSidebarState] = useState({tabValue: 0, findBtnState: false})
 
@@ -58,8 +60,8 @@ export const SideBar = () => {
     })
 
     // get data for the first time render
-    const {data: queriedUserProfile, loading: queriedUserProfileLoading} = useQuery(GET_USER_PROFILE,
-        {variables: {user_name: activeUsername}})
+    const {data: queriedUserProfile, loading: queriedUserProfileLoading, refetch}
+        = useQuery(GET_USER_PROFILE, {variables: {user_name: activeUsername}})
 
     const {enqueueSnackbar} = useSnackbar();
 
@@ -67,6 +69,22 @@ export const SideBar = () => {
     useSubscriptionNotification(subscribedData, subscribedDataLoading, enqueueSnackbar)
 
     useQueriedUserProfile(queriedUserProfile, queriedUserProfileLoading, enqueueSnackbar)
+
+    useEffect(() => {
+        log.info(`[SideBar] Component did mount...`)
+
+        // refetch again once the user the login again.
+        // excludeSearchSuggestions map is getting cleared during logout.
+        if (excludeSearchSuggestions.size === 0) {
+            log.info('[SideBar] Refetching user profile...')
+
+            refetch().catch(e => {
+                log.error(`[Error] Unable to refetch user profile e = ${e}`)
+            })
+        }
+
+        // eslint-disable-next-line
+    }, [])
 
 
     // renderers
