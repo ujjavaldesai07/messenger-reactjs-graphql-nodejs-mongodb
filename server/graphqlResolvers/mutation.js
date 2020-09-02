@@ -1,10 +1,10 @@
-import {Conversation, UserProfile} from "../model.js";
 import {
     getChannelIDByUsernameAndFriendName,
     updateAcceptRequestQuery,
     updateSendRequestQuery
 } from "../modelOperations.js";
 import {pubsub, friendSuggestionMap} from "../constants.js";
+import {db} from "../server.js"
 
 
 export const mutations = {
@@ -19,17 +19,17 @@ export const mutations = {
      */
     postConversation: async (_, {channel_id, message, user_name}) => {
         console.log(`postConversation Invoked by user_name = ${user_name}`)
-        const res = await Conversation.findOneAndUpdate(
+        const res = await db.collection("conversations").findOneAndUpdate(
             {channel_id: channel_id},
-            {$push: {"messages": [{message: message, user_name: user_name}]}},
-            {new: true, upsert: true})
+            {$push: {"messages": {message: message, user_name: user_name}}},
+            {returnOriginal: false, upsert: true})
 
         console.log(`res = ${JSON.stringify(res)}`)
 
         // if no error_msg then insertion is successful and return the object
-        if (res) {
+        if (res.hasOwnProperty("value")) {
             console.log(`[postConversation] conversation is added successfully for channel_id = ${channel_id}....`)
-            pubsub.publish(channel_id, {conversations: res.messages})
+            pubsub.publish(channel_id, {conversations: res.value.messages})
             return {message: message, user_name: user_name}
         }
 
@@ -49,20 +49,20 @@ export const mutations = {
     resetNotification: async (_, {user_name, notification_name}) => {
         console.log(`[resetNotification] user_name = ${user_name}, notification_name = ${notification_name}`)
         const notificationFieldPath = `request_notification.${notification_name}`
-        const res = await UserProfile.findOneAndUpdate(
+        const res = await db.collection("userprofiles").findOneAndUpdate(
             {user_name: user_name},
             {
                 $set: {
                     [notificationFieldPath]: 0
                 }
             },
-            {new: true})
+            {returnOriginal: false})
 
         try {
             console.log(`[resetNotification] res = ${JSON.stringify(res)}`)
 
             console.log(`[resetNotification] resetNotification is published successfully...`)
-            return {request_notification: res.request_notification}
+            return {request_notification: res.value.request_notification}
 
         } catch (e) {
             console.log(`[resetNotification] Fail to reset notification e = ${e}`)
@@ -78,12 +78,12 @@ export const mutations = {
     addUserProfile: async (_, {user_name, password}) => {
 
         // check if user_name present
-        const findUserProfileResult = await UserProfile.findOne({user_name: user_name})
+        const findUserProfileResult = await db.collection("userprofiles").findOne({user_name: user_name})
 
         console.log(`[addUserProfile] findUserProfileResult = ${JSON.stringify(findUserProfileResult)}`)
 
         if (!findUserProfileResult) {
-            const userProfile = new UserProfile({
+            const userProfile = {
                 user_name: user_name,
                 password: password,
                 request_notification: {newRequests: 0, pendingRequests: 0},
@@ -92,10 +92,10 @@ export const mutations = {
                     newRequests: [],
                     pendingRequests: []
                 }
-            })
+            }
 
             // create new user
-            const createUserProfileResult = await userProfile.save()
+            const createUserProfileResult = await db.collection("userprofiles").insertOne(userProfile)
 
             console.log(`[addUserProfile] createUserProfileResult = ${JSON.stringify(createUserProfileResult)}`)
             if (createUserProfileResult) {
@@ -220,12 +220,12 @@ export const mutations = {
 
                     if (friendAcceptQueryResult) {
 
-                        const conversation = new Conversation({
+                        const conversation = {
                             channel_id: userProfileAcceptRequest.channel_id, messages: []
-                        })
+                        }
 
                         // create new conversation channel
-                        await conversation.save()
+                        await db.collection("conversations").insertOne(conversation)
 
                         // publish friend's object to subscribed friend's profile
                         pubsub.publish(friend_user_name, {

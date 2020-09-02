@@ -95,7 +95,7 @@ export function LoginRoute() {
         )
     }
 
-    log.info(`[LoginRoute] Rendering LoginRoute Component....error = ${error}`)
+    log.info(`[LoginRoute] Rendering LoginRoute Component....`)
 
     return (
         <Grid id="Login" container justify="center"

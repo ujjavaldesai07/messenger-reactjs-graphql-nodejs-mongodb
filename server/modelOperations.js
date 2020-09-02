@@ -1,4 +1,4 @@
-import {UserProfile} from "./model.js";
+import {db} from "./server.js";
 
 /**
  * create friend request with pending status in user profile
@@ -16,7 +16,7 @@ export const updateSendRequestQuery = async (user_name, friend_user_name,
     const friendRequestTypePath = `friends.${requestPropertyType}`
 
     // find One and update the status
-    const updateRequestStatus = await UserProfile.findOneAndUpdate(
+    const updateRequestStatus = await db.collection("userprofiles").findOneAndUpdate(
         {
             user_name: user_name,
             [friendRequestTypePath]: {"$not": {"$elemMatch": {"friend_user_name": friend_user_name}}}
@@ -32,13 +32,13 @@ export const updateSendRequestQuery = async (user_name, friend_user_name,
                 [requestTypePath]: 1
             }
         },
-        {new: true})
+        {returnOriginal: false})
 
     console.log(`updateRequestStatus = ${JSON.stringify(updateRequestStatus)}`)
 
     // if success then return the object
-    if (updateRequestStatus) {
-        return updateRequestStatus
+    if (updateRequestStatus.lastErrorObject.updatedExisting) {
+        return updateRequestStatus.value
     }
     return null
 }
@@ -58,7 +58,7 @@ export const updateAcceptRequestQuery = async (user_name, friend_user_name, chan
 
     // decrement the request first so that we can get the correct
     // notification number.
-    await UserProfile.updateOne(
+    await db.collection("userprofiles").updateOne(
         {
             user_name: user_name,
             [requestTypePath]: {$gt: 0},
@@ -70,7 +70,7 @@ export const updateAcceptRequestQuery = async (user_name, friend_user_name, chan
         })
 
     // now update the status
-    const updateAcceptRequestResult = await UserProfile.findOneAndUpdate(
+    const updateAcceptRequestResult = await db.collection("userprofiles").findOneAndUpdate(
         {
             user_name: user_name,
             [requestTypePath]: {$gte: 0},
@@ -93,12 +93,12 @@ export const updateAcceptRequestQuery = async (user_name, friend_user_name, chan
                 }
             },
         },
-        {new: true, multi: true})
+        {returnOriginal: false, multi: true})
 
     console.log(`updateAcceptRequestResult = ${JSON.stringify(updateAcceptRequestResult)}`)
 
-    if (updateAcceptRequestResult) {
-        return updateAcceptRequestResult
+    if (updateAcceptRequestResult.lastErrorObject.updatedExisting) {
+        return updateAcceptRequestResult.value
     }
 
     return null
@@ -110,7 +110,7 @@ export const getChannelIDByUsernameAndFriendName
     const friendRequestTypePath = `friends.${requestPropertyType}`
     const friendRequestTypeArrayElementPath = `${friendRequestTypePath}.$`
 
-    const friendObject = await UserProfile.findOne({
+    const friendObject = await db.collection("userprofiles").findOne({
             user_name: user_name,
             [friendRequestTypePath]: {"$elemMatch": {"friend_user_name": friend_user_name}}
         },

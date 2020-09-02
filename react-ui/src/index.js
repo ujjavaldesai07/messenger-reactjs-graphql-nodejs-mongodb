@@ -9,8 +9,8 @@ import {GraphQLClient, ReduxStore} from "./config";
 import {SnackbarProvider} from "notistack";
 import ErrorBoundary from "./ErrorBoundary";
 
-log.disableAll(true)
-// log.setLevel("info")
+// log.disableAll(true)
+log.setLevel("info")
 
 ReactDOM.render(
     <Provider store={ReduxStore}>

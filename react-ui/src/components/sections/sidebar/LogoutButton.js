@@ -13,14 +13,19 @@ import {
 import {useSidebarStyles} from "../../../styles/sidebarStyles";
 import ExitToAppIcon from "@material-ui/icons/ExitToApp";
 import Cookies from "js-cookie";
-import {ACTIVE_FRIEND_NAME, ACTIVE_USER_CREDENTIALS, REMOVE_NOTIFICATION} from "../../../actions/types";
+import {
+    ACTIVE_FRIEND_NAME,
+    ACTIVE_USER_CREDENTIALS,
+    EXCLUDE_SEARCH_SUGGESTIONS,
+    REMOVE_NOTIFICATION
+} from "../../../actions/types";
 import history from "../../../history";
-import {useDispatch} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 
 export function LogoutButton() {
     const classes = useSidebarStyles()
     const dispatch = useDispatch()
-
+    let excludeSearchSuggestions = useSelector(state => state.excludeSearchSuggestionsReducer)
     /**
      * On logout remove all the cookies and cleanup all redux states.
      */
@@ -44,6 +49,9 @@ export function LogoutButton() {
         dispatch({
             type: REMOVE_NOTIFICATION
         })
+
+        excludeSearchSuggestions.clear()
+
         history.push("/login")
     }
 

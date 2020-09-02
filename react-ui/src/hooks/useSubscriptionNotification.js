@@ -1,15 +1,20 @@
 import {useEffect} from "react";
 import log from "loglevel";
 import {
-    ACCEPTED_TEXT,
+    ACCEPTED_TEXT, ACTIVE_FRIEND_COOKIE,
     PENDING_TEXT, REQUESTED_TEXT,
     SNACKBAR_AUTO_HIDE_DURATION,
 } from "../constants/constants";
 import {
     NEW_REQUEST_NOTIFICATION,
-    ACCEPTED_REQUEST_NOTIFICATION, PENDING_REQUEST_NOTIFICATION, REQUEST_NOTIFICATION, EXCLUDE_SEARCH_SUGGESTIONS
+    ACCEPTED_REQUEST_NOTIFICATION,
+    PENDING_REQUEST_NOTIFICATION,
+    REQUEST_NOTIFICATION,
+    EXCLUDE_SEARCH_SUGGESTIONS,
+    ACTIVE_FRIEND_NAME
 } from "../actions/types";
 import {useDispatch, useSelector} from "react-redux";
+import Cookies from "js-cookie";
 
 /**
  * Custom hook to dispatch data to redux from subscribed notifications.
@@ -67,6 +72,13 @@ export function useSubscriptionNotification(subscribedData, subscribedDataLoadin
                             payload: {acceptedRequests: friend, requestNotification: request_notification}
                         })
                     })
+
+                    dispatch({
+                        type: ACTIVE_FRIEND_NAME,
+                        payload: acceptedRequests[0]
+                    })
+
+                    Cookies.set(ACTIVE_FRIEND_COOKIE, acceptedRequests[0], {expires: 7})
                 }
 
                 if (newRequests && newRequests.length > 0) {

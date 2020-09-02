@@ -1,4 +1,4 @@
-import {Conversation} from "../model.js";
+import {db} from "../server.js";
 
 export const subscriptions = {
 
@@ -9,20 +9,19 @@ export const subscriptions = {
         subscribe: async (parent, {channel_id, user_name}, {pubsub}) => {
 
             console.log(`[Subscription] user_name = ${user_name} subscribes to conversations on channel_id = ${channel_id}`)
-            const conversations = await Conversation.findOne({channel_id: channel_id})
+
+            const conversations = await db.collection("conversations").findOne({channel_id: channel_id})
 
             if (conversations) {
-                console.log(`[Subscription] conversations = ${JSON.stringify(conversations.messages)}`)
 
                 // publish the data once we the event emitter is initialized with
                 // tbe channel_id.
-                setTimeout(
-                    () => pubsub.publish(channel_id, {conversations: conversations.messages}),
+                setTimeout(() => pubsub.publish(channel_id, {conversations: conversations.messages}),
                     0)
-
-                console.log(`[Subscription] channel id = ${channel_id} is subscribed...`)
-                return pubsub.asyncIterator(channel_id);
             }
+
+            console.log(`[Subscription] channel id = ${channel_id} is subscribed...`)
+            return pubsub.asyncIterator(channel_id);
         }
     },
 

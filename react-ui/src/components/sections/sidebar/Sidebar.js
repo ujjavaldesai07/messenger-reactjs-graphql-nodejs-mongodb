@@ -52,19 +52,20 @@ export const SideBar = () => {
     // initial sidebar states
     const [sidebarState, setSidebarState] = useState({tabValue: 0, findBtnState: false})
 
-    // get data for the first time render
-    const {data: queriedUserProfile, loading: queriedUserProfileLoading} = useQuery(GET_USER_PROFILE,
-        {variables: {user_name: activeUsername}})
-
     // update this component when we get new notification
     const {data: subscribedData, loading: subscribedDataLoading} = useSubscription(GET_APP_NOTIFICATION, {
         variables: {user_name: activeUsername}
     })
 
+    // get data for the first time render
+    const {data: queriedUserProfile, loading: queriedUserProfileLoading} = useQuery(GET_USER_PROFILE,
+        {variables: {user_name: activeUsername}})
+
     const {enqueueSnackbar} = useSnackbar();
 
     // custom hooks
     useSubscriptionNotification(subscribedData, subscribedDataLoading, enqueueSnackbar)
+
     useQueriedUserProfile(queriedUserProfile, queriedUserProfileLoading, enqueueSnackbar)
 
 

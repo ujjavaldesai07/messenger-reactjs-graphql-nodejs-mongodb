@@ -1,13 +1,14 @@
 import {useEffect} from "react";
 import log from "loglevel";
 import {
-    ACCEPTED_TEXT,
+    ACCEPTED_TEXT, ACTIVE_FRIEND_COOKIE,
     PENDING_TEXT, REQUESTED_TEXT, SELF_TEXT,
 } from "../constants/constants";
 import {
-    REQUEST_NOTIFICATION, EXCLUDE_SEARCH_SUGGESTIONS
+    REQUEST_NOTIFICATION, EXCLUDE_SEARCH_SUGGESTIONS, ACTIVE_FRIEND_NAME
 } from "../actions/types";
 import {useDispatch, useSelector} from "react-redux";
+import Cookies from "js-cookie";
 
 /**
  * Custom hook to subscribe notifications.
@@ -24,6 +25,7 @@ export function useQueriedUserProfile(queriedUserProfile, queriedUserProfileLoad
     const dispatch = useDispatch()
     const excludeSearchSuggestions = useSelector(state => state.excludeSearchSuggestionsReducer)
     const activeUsername = useSelector(state => state.activeUsernameReducer.user_name)
+    const {friend_user_name} = useSelector(state => state.friendSelectionReducer)
 
     const excludeRequestOptionFromFriends = (requestType, text, searchSuggestionMap) => {
         if (requestType.length > 0) {
@@ -63,6 +65,14 @@ export function useQueriedUserProfile(queriedUserProfile, queriedUserProfileLoad
                             autoHideDuration: 5000,
                             preventDuplicate: true
                         })
+                } else if (!friend_user_name) {
+
+                    dispatch({
+                        type: ACTIVE_FRIEND_NAME,
+                        payload: acceptedRequests[0]
+                    })
+
+                    Cookies.set(ACTIVE_FRIEND_COOKIE, acceptedRequests[0], {expires: 7})
                 }
 
                 // if we set something then dispatch it.

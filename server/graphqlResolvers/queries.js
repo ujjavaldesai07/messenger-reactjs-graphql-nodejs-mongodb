@@ -1,21 +1,21 @@
-import {Conversation, UserProfile} from "../model.js";
 import {friendSuggestionMap} from "../constants.js";
+import {db} from "../server.js";
 
 export const queries = {
     conversations: async (parent, {channel_id}) => {
         console.log(`[conversations] conversations query is invoked....`)
         // get all messages from the respective channel
-        const conversation = await Conversation.findOne({channel_id: channel_id})
+        const conversations = await db.collection("conversations").findOne({channel_id: channel_id})
 
-        if (conversation) {
-            return conversation.messages
+        if (conversations) {
+            return conversations.messages
         }
         return null
     },
     friend: async (parent, {user_name, friend_user_name}) => {
 
         // get friend's profile based on user_name and friend's name
-        const friend = await UserProfile.aggregate([
+        const friend = await db.collection("userprofiles").aggregate([
             {
                 $match: {
                     user_name: user_name,
@@ -59,7 +59,7 @@ export const queries = {
     friends: async (parent, {user_name}) => {
 
         // get all friends
-        const friendList = await UserProfile.findOne({user_name: user_name})
+        const friendList = await db.collection("userprofiles").findOne({user_name: user_name})
 
         console.log(`res = ${JSON.stringify(friendList)}`)
         if (friendList) {
@@ -70,7 +70,7 @@ export const queries = {
     userNames: async (parent, {user_name}) => {
 
         // get all usernames
-        const userNames = await UserProfile.aggregate([{$match: {"user_name": {$ne: user_name}}},
+        const userNames = await db.collection("userprofiles").aggregate([{$match: {"user_name": {$ne: user_name}}},
             {$project: {_id: 0, user_id: "$_id", "user_name": 1}}]);
 
         console.log(`res = ${JSON.stringify(userNames)}`)
@@ -93,7 +93,7 @@ export const queries = {
     userProfile: async (parent, {user_name}) => {
 
         // get the userprofile based on user_name
-        const userProfile = await UserProfile.findOne({user_name: user_name})
+        const userProfile = await db.collection("userprofiles").findOne({user_name: user_name})
 
         console.log(`[userProfile] userProfile = ${JSON.stringify(userProfile)}`)
         if (userProfile) {

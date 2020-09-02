@@ -10,6 +10,8 @@
     "express": "^4.17.1",
     "graphql-yoga": "^1.18.3",
     "lodash": "^4.17.20",
-    "mongoose": "latest"
+    "mongodb": "^3.6.0"
+  },
+  "devDependencies": {
   }
 }
