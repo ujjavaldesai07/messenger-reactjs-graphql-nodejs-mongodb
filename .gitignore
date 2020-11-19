@@ -7,6 +7,7 @@ server/.idea
 # dependencies
 react-ui/node_modules
 server/node_modules
+node_modules/
 
 # production
 react-ui/build

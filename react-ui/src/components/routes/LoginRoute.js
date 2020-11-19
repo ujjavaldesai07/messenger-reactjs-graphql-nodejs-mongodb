@@ -118,7 +118,7 @@ export function LoginRoute() {
     return (
         <Grid id="Login" container justify="center"
               alignItems="center" style={{position: "relative", top: 200, height: 300}}>
-            <Grid item xs={4} container direction="column" spacing={3} justify="center"
+            <Grid item xs={8} md={4} container direction="column" spacing={3} justify="center"
                   style={{backgroundColor: CARD_COLOR}}>
                 <Grid item container justify="center">
                     <Typography variant="h6" style={{color: TITLE_TEXT_COLOR, fontSize: "1.5rem"}}>
